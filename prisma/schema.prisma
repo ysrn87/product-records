@@ -1,0 +1,303 @@
+// Prisma Schema for Product Stock Management System
+// Version: 1.0.0
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & ACCESS MANAGEMENT (Epic 1)
+// ============================================
+
+enum UserRole {
+  PRIVILEGE // Full report access + manage Admin accounts
+  ADMIN     // Manage products, variants, pricing, Sales/Warehouse users
+  SALES     // Record sales transactions and generate invoices
+  WAREHOUSE // Record incoming product/stock
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  password      String
+  name          String
+  phone         String?
+  role          UserRole    @default(SALES)
+  status        UserStatus  @default(ACTIVE)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  createdBy     String?     // Who created this user
+  
+  // Relations
+  sales         Sale[]      @relation("SalespersonSales")
+  stockEntries  StockEntry[]
+  activityLogs  ActivityLog[]
+  
+  @@map("users")
+}
+
+// ============================================
+// PRODUCT & VARIANT MANAGEMENT (Epic 2)
+// ============================================
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  products    Product[]
+  
+  @@map("categories")
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String?
+  categoryId  String
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  category    Category  @relation(fields: [categoryId], references: [id])
+  variantTypes VariantType[]
+  variants    ProductVariant[]
+  
+  @@map("products")
+}
+
+model VariantType {
+  id          String    @id @default(cuid())
+  name        String    // e.g., "Flavor", "Netto", "Size"
+  productId   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options     VariantOption[]
+  
+  @@unique([name, productId])
+  @@map("variant_types")
+}
+
+model VariantOption {
+  id            String    @id @default(cuid())
+  value         String    // e.g., "Balado", "100gr", "Large"
+  variantTypeId String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  variantType   VariantType @relation(fields: [variantTypeId], references: [id], onDelete: Cascade)
+  variantValues ProductVariantValue[]
+  
+  @@unique([value, variantTypeId])
+  @@map("variant_options")
+}
+
+model ProductVariant {
+  id              String    @id @default(cuid())
+  sku             String    @unique
+  productId       String
+  costPrice       Decimal   @db.Decimal(12, 2)
+  sellingPrice    Decimal   @db.Decimal(12, 2)
+  minStockLevel   Int       @default(10)
+  currentStock    Int       @default(0)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantValues   ProductVariantValue[]
+  stockEntries    StockEntryItem[]
+  saleItems       SaleItem[]
+  
+  @@map("product_variants")
+}
+
+model ProductVariantValue {
+  id              String    @id @default(cuid())
+  variantId       String
+  variantOptionId String
+  
+  // Relations
+  variant         ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  variantOption   VariantOption  @relation(fields: [variantOptionId], references: [id], onDelete: Cascade)
+  
+  @@unique([variantId, variantOptionId])
+  @@map("product_variant_values")
+}
+
+// ============================================
+// INCOMING PRODUCT - STOCK IN (Epic 3)
+// ============================================
+
+enum StockEntryStatus {
+  COMPLETED
+  CANCELLED
+}
+
+model StockEntry {
+  id            String            @id @default(cuid())
+  entryNumber   String            @unique
+  date          DateTime          @default(now())
+  notes         String?           // supplier, batch number, etc.
+  status        StockEntryStatus  @default(COMPLETED)
+  cancelReason  String?
+  cancelledAt   DateTime?
+  recordedById  String
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  
+  // Relations
+  recordedBy    User              @relation(fields: [recordedById], references: [id])
+  items         StockEntryItem[]
+  
+  @@map("stock_entries")
+}
+
+model StockEntryItem {
+  id            String    @id @default(cuid())
+  stockEntryId  String
+  variantId     String
+  quantity      Int
+  costPrice     Decimal   @db.Decimal(12, 2) // Cost at time of entry
+  createdAt     DateTime  @default(now())
+  
+  // Relations
+  stockEntry    StockEntry      @relation(fields: [stockEntryId], references: [id], onDelete: Cascade)
+  variant       ProductVariant  @relation(fields: [variantId], references: [id])
+  
+  @@map("stock_entry_items")
+}
+
+// ============================================
+// SALES & OUTGOING PRODUCT - STOCK OUT (Epic 4)
+// ============================================
+
+enum SaleStatus {
+  COMPLETED
+  CANCELLED
+  VOIDED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CREDIT_CARD
+  DEBIT_CARD
+  EWALLET
+  OTHER
+}
+
+model Customer {
+  id          String    @id @default(cuid())
+  name        String
+  phone       String?
+  address     String?
+  email       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  sales       Sale[]
+  
+  @@map("customers")
+}
+
+model Sale {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique
+  date            DateTime      @default(now())
+  customerId      String
+  salespersonId   String
+  subtotal        Decimal       @db.Decimal(12, 2)
+  discountAmount  Decimal       @default(0) @db.Decimal(12, 2)
+  totalAmount     Decimal       @db.Decimal(12, 2)
+  paymentMethod   PaymentMethod @default(CASH)
+  status          SaleStatus    @default(COMPLETED)
+  cancelReason    String?
+  cancelledAt     DateTime?
+  approvedBy      String?       // For cancellation approval
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  customer        Customer      @relation(fields: [customerId], references: [id])
+  salesperson     User          @relation("SalespersonSales", fields: [salespersonId], references: [id])
+  items           SaleItem[]
+  
+  @@map("sales")
+}
+
+model SaleItem {
+  id              String    @id @default(cuid())
+  saleId          String
+  variantId       String
+  quantity        Int
+  unitPrice       Decimal   @db.Decimal(12, 2) // Price at time of sale
+  discountPercent Decimal   @default(0) @db.Decimal(5, 2)
+  discountAmount  Decimal   @default(0) @db.Decimal(12, 2)
+  totalPrice      Decimal   @db.Decimal(12, 2)
+  createdAt       DateTime  @default(now())
+  
+  // Relations
+  sale            Sale            @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  variant         ProductVariant  @relation(fields: [variantId], references: [id])
+  
+  @@map("sale_items")
+}
+
+// ============================================
+// SYSTEM & SETTINGS (Epic 6)
+// ============================================
+
+model CompanyProfile {
+  id          String    @id @default(cuid())
+  name        String
+  address     String?
+  phone       String?
+  email       String?
+  logoUrl     String?
+  invoicePrefix String  @default("INV")
+  stockEntryPrefix String @default("SE")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@map("company_profile")
+}
+
+model ActivityLog {
+  id          String    @id @default(cuid())
+  userId      String
+  action      String    // e.g., "CREATE_SALE", "UPDATE_PRODUCT", etc.
+  entityType  String    // e.g., "Sale", "Product", "User"
+  entityId    String?
+  details     String?   // JSON string with additional details
+  ipAddress   String?
+  createdAt   DateTime  @default(now())
+  
+  // Relations
+  user        User      @relation(fields: [userId], references: [id])
+  
+  @@map("activity_logs")
+}
