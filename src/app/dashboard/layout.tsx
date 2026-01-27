@@ -4,7 +4,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import SessionMonitor from '@/components/auth/SessionMonitor';
 
 // Prevent caching to ensure fresh session check
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 
 export default async function DashboardLayout({
   children,

@@ -1,3 +1,5 @@
+// src/components/auth/SessionMonitor.tsx
+
 'use client';
 
 import { useEffect, useCallback } from 'react';
@@ -14,42 +16,33 @@ export default function SessionMonitor() {
     signOut({ callbackUrl: '/login?error=SessionExpired' });
   }, []);
 
-  // Check if session has UserInvalidated error (user deleted/deactivated)
+  // Check if session has UserInvalidated error
   useEffect(() => {
     if ((session as any)?.error === 'UserInvalidated') {
       handleLogout();
     }
   }, [session, handleLogout]);
 
-  // If session becomes unauthenticated unexpectedly while on dashboard
+  // If session becomes unauthenticated unexpectedly
   useEffect(() => {
     if (status === 'unauthenticated' && window.location.pathname.startsWith('/dashboard')) {
       router.push('/login');
     }
   }, [status, router]);
 
-  // Periodically refresh session to check validity (every 2 minutes)
+  // CHANGED: Refresh session every 30 minutes instead of 2 minutes
   useEffect(() => {
     const interval = setInterval(() => {
       if (status === 'authenticated') {
         update();
       }
-    }, 2 * 60 * 1000);
+    }, 30 * 60 * 1000); // 30 minutes
 
     return () => clearInterval(interval);
   }, [status, update]);
 
-  // Check session on window focus
-  useEffect(() => {
-    const handleFocus = () => {
-      if (status === 'authenticated') {
-        update();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [status, update]);
+  // REMOVED: Window focus check - too aggressive
+  // Users won't be deleted while actively using the app
 
   return null;
 }

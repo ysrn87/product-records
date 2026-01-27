@@ -21,19 +21,19 @@ async function getDashboardStats(userRole: string, userId: string) {
   const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
   const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
 
-  // Total products and variants
-  const totalProducts = await prisma.product.count({ where: { isActive: true } });
-  const totalVariants = await prisma.productVariant.count({ where: { isActive: true } });
-
-  // Low stock items
-  const lowStockItems = await prisma.productVariant.count({
-    where: {
-      isActive: true,
-      currentStock: {
-        lte: prisma.productVariant.fields.minStockLevel,
+  // PARALLELIZED: Run independent queries simultaneously
+  const [totalProducts, totalVariants, lowStockItems] = await Promise.all([
+    prisma.product.count({ where: { isActive: true } }),
+    prisma.productVariant.count({ where: { isActive: true } }),
+    prisma.productVariant.count({
+      where: {
+        isActive: true,
+        currentStock: {
+          lte: prisma.productVariant.fields.minStockLevel,
+        },
       },
-    },
-  });
+    }),
+  ]);
 
   // Sales data (only for non-warehouse roles)
   let todaySales = { amount: 0, count: 0 };
