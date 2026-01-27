@@ -1,6 +1,9 @@
 import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
+// Add this line to use Node.js runtime
+export const runtime = 'nodejs';
+
 export default auth((req) => {
   const session = req.auth;
   const hasValidUser = session?.user?.id;
