@@ -1,9 +1,9 @@
 # Product Stock Management - Testing Checklist
 
 ## Login Credentials
-| Role | Email | Password |
-|------|-------|----------|
-| PRIVILEGE | privilege@example.com | password123 |
+|    Role    |         Email         |   Password   |
+|------------|-----------------------|--------------|
+| PRIVILEGE  | privilege@example.com | password123  |
 
 ---
 
@@ -12,7 +12,7 @@
 ### Login
 - [ ] Can login with valid credentials -> PASS
 - [ ] Cannot login with invalid credentials -> PASS
-- [ ] Cannot login with inactive user
+- [ ] Cannot login with inactive user -> PASS
 - [ ] Redirects to dashboard after login -> PASS
 - [ ] Logout works correctly -> PASS
 
