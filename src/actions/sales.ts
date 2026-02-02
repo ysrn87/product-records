@@ -60,30 +60,22 @@ export async function getSales(filters?: {
   }
 
   const sales = serializeData(await prisma.sale.findMany({
-    where,
-    include: {
-      customer: true,
-      salesperson: true,
-      items: {
-        include: {
-          variant: {
-            include: {
-              product: true,
-              variantValues: {
-                include: {
-                  variantOption: {
-                    include: {
-                      variantType: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+    select: {
+      id: true,
+      invoiceNumber: true,
+      date: true,
+      totalAmount: true,
+      status: true,
+      customer: {
+        select: { id: true, name: true },
+      },
+      salesperson: {
+        select: { id: true, name: true },
+      },
+      _count: {
+        select: { items: true },
       },
     },
-    orderBy: { date: 'desc' },
   }));
 
   return sales;
@@ -136,19 +128,22 @@ export async function createSale(data: z.infer<typeof createSaleSchema>) {
 
   try {
     // Check stock availability
-    for (const item of items) {
-      const variant = serializeData(await prisma.productVariant.findUnique({
-        where: { id: item.variantId },
-      }));
+    // ✅ GOOD: Single query for all variants
+const variantIds = items.map(i => i.variantId);
+const variants = await prisma.productVariant.findMany({
+  where: { id: { in: variantIds } },
+  select: { id: true, sku: true, currentStock: true },
+});
 
-      if (!variant) {
-        return { error: `Product variant not found` };
-      }
+const variantMap = new Map(variants.map(v => [v.id, v]));
 
-      if (variant.currentStock < item.quantity) {
-        return { error: `Insufficient stock for ${variant.sku}. Available: ${variant.currentStock}` };
-      }
-    }
+for (const item of items) {
+  const variant = variantMap.get(item.variantId);
+  if (!variant) return { error: 'Product variant not found' };
+  if (variant.currentStock < item.quantity) {
+    return { error: `Insufficient stock for ${variant.sku}` };
+  }
+}
 
     // Get or create customer
     let finalCustomerId = customerId;
@@ -357,11 +352,11 @@ export async function getAvailableVariants(search?: string) {
       currentStock: { gt: 0 },
       ...(search
         ? {
-            OR: [
-              { sku: { contains: search, mode: 'insensitive' } },
-              { product: { name: { contains: search, mode: 'insensitive' } } },
-            ],
-          }
+          OR: [
+            { sku: { contains: search, mode: 'insensitive' } },
+            { product: { name: { contains: search, mode: 'insensitive' } } },
+          ],
+        }
         : {}),
     },
     include: {

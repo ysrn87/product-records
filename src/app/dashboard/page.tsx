@@ -16,7 +16,7 @@ import { UserRole } from '@prisma/client';
 async function getDashboardStats(userRole: string, userId: string) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
   const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
@@ -46,62 +46,60 @@ async function getDashboardStats(userRole: string, userId: string) {
     const salesFilter = userRole === 'SALES' ? { salespersonId: userId } : {};
 
     // Today's sales
-    const todaySalesData = await prisma.sale.aggregate({
-      where: {
-        status: 'COMPLETED',
-        date: { gte: today },
-        ...salesFilter,
-      },
-      _sum: { totalAmount: true },
-      _count: true,
-    });
-
-    // This month's sales
-    const thisMonthSalesData = await prisma.sale.aggregate({
-      where: {
-        status: 'COMPLETED',
-        date: { gte: startOfMonth },
-        ...salesFilter,
-      },
-      _sum: { totalAmount: true },
-      _count: true,
-    });
-
-    // Last month's sales
-    const lastMonthSalesData = await prisma.sale.aggregate({
-      where: {
-        status: 'COMPLETED',
-        date: {
-          gte: startOfLastMonth,
-          lte: endOfLastMonth,
-        },
-        ...salesFilter,
-      },
-      _sum: { totalAmount: true },
-    });
-
-    // Recent sales
-    recentSales = await prisma.sale.findMany({
-      where: { 
-        status: 'COMPLETED',
-        ...salesFilter,
-      },
-      include: {
-        customer: true,
-        salesperson: true,
-        items: {
+    const [todaySalesData, thisMonthSalesData, lastMonthSalesData, recentSales] =
+      await Promise.all([
+        prisma.sale.aggregate({
+          where: {
+            status: 'COMPLETED',
+            date: { gte: today },
+            ...salesFilter,
+          },
+          _sum: { totalAmount: true },
+          _count: true,
+        }),
+        prisma.sale.aggregate({
+          where: {
+            status: 'COMPLETED',
+            date: { gte: startOfMonth },
+            ...salesFilter,
+          },
+          _sum: { totalAmount: true },
+          _count: true,
+        }),
+        prisma.sale.aggregate({
+          where: {
+            status: 'COMPLETED',
+            date: {
+              gte: startOfLastMonth,
+              lte: endOfLastMonth,
+            },
+            ...salesFilter,
+          },
+          _sum: { totalAmount: true },
+        }),
+        prisma.sale.findMany({
+          where: {
+            status: 'COMPLETED',
+            ...salesFilter,
+          },
           include: {
-            variant: {
+            customer: true,
+            salesperson: true,
+            items: {
               include: {
-                product: true,
+                variant: {
+                  include: {
+                    product: true,
+                  },
+                },
               },
             },
           },
-        },
-      },
-      orderBy: { date: 'desc' },
-      take: 5,
-    });
+          orderBy: { date: 'desc' },
+          take: 5,
+        }),
+      ]);
+
 
     todaySales = {
       amount: Number(todaySalesData._sum.totalAmount) || 0,
@@ -214,7 +212,7 @@ export default async function DashboardPage() {
           Welcome back, {session?.user?.name}!
         </h1>
         <p className="text-gray-500 mt-1">
-          {isWarehouse 
+          {isWarehouse
             ? "Here's your warehouse overview for today."
             : "Here's what's happening with your store today."
           }
@@ -428,7 +426,7 @@ export default async function DashboardPage() {
                   const variantName = variant.variantValues
                     .map((vv: any) => vv.variantOption.value)
                     .join(' - ');
-                  
+
                   return (
                     <div key={variant.id} className="p-4 hover:bg-gray-50">
                       <div className="flex items-center justify-between">
@@ -437,9 +435,8 @@ export default async function DashboardPage() {
                           <p className="text-sm text-gray-500">{variantName}</p>
                         </div>
                         <div className="text-right">
-                          <p className={`font-semibold ${
-                            variant.currentStock <= 0 ? 'text-red-600' : 'text-yellow-600'
-                          }`}>
+                          <p className={`font-semibold ${variant.currentStock <= 0 ? 'text-red-600' : 'text-yellow-600'
+                            }`}>
                             {variant.currentStock} left
                           </p>
                           <p className="text-xs text-gray-500">

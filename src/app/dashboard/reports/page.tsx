@@ -90,27 +90,24 @@ async function getReportsData(period: string = 'month') {
     take: 5,
   });
 
-  const topProductsWithDetails = await Promise.all(
-    topProducts.map(async (item: any) => {
-      const variant = serializeData(await prisma.productVariant.findUnique({
-        where: { id: item.variantId },
-        include: {
-          product: true,
-          variantValues: {
-            include: {
-              variantOption: {
-                include: { variantType: true },
-              },
-            },
-          },
-        },
-      }));
-      return {
-        ...item,
-        variant,
-      };
-    })
-  );
+const variantIds = topProducts.map(p => p.variantId);
+const variants = await prisma.productVariant.findMany({
+  where: { id: { in: variantIds } },
+  include: {
+    product: true,
+    variantValues: {
+      include: {
+        variantOption: { include: { variantType: true } },
+      },
+    },
+  },
+});
+
+const variantMap = new Map(variants.map(v => [v.id, v]));
+const topProductsWithDetails = topProducts.map(item => ({
+  ...item,
+  variant: variantMap.get(item.variantId),
+}));
 
   // Top customers
   const topCustomers = await prisma.sale.groupBy({
@@ -399,7 +396,7 @@ export default async function ReportsPage({
                       </div>
                       <div className="text-right">
                         <p className="font-medium text-gray-900">{formatNumber(item._sum.quantity || 0)} sold</p>
-                        <p className="text-sm text-gray-500">{formatCurrency(item._sum.totalPrice)}</p>
+                        <p className="text-sm text-gray-500">{formatCurrency(Number(item._sum.totalPrice) || 0)}</p>
                       </div>
                     </div>
                   );
