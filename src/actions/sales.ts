@@ -59,7 +59,7 @@ export async function getSales(filters?: {
     ];
   }
 
-  const sales = await prisma.sale.findMany({
+  const sales = serializeData(await prisma.sale.findMany({
     select: {
       id: true,
       invoiceNumber: true,
@@ -76,7 +76,7 @@ export async function getSales(filters?: {
         select: { items: true },
       },
     },
-  });
+  }));
 
   return sales;
 }

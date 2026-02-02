@@ -4,7 +4,6 @@ import { getSales } from '@/actions/sales';
 import { formatCurrency, formatDateTime, paymentMethodNames } from '@/lib/utils';
 import Link from 'next/link';
 import { Plus, ShoppingCart, Search, Eye, FileText } from 'lucide-react';
-import { serializeData } from '@/lib/utils';
 
 export default async function SalesPage({
   searchParams,
@@ -28,7 +27,7 @@ export default async function SalesPage({
     filters.salespersonId = session.user.id;
   }
 
-  const sales = serializeData(await getSales(filters));
+  const sales = await getSales(filters);
 
   return (
     <div className="space-y-6">
@@ -142,9 +141,9 @@ export default async function SalesPage({
                       )}
                     </td>
                     <td>
-                      <p className="text-gray-900">{sale.items.length} items</p>
+                      <p className="text-gray-900">{sale.items?.length || 0} items</p>
                       <p className="text-sm text-gray-500">
-                        {sale.items.reduce((sum: any, item: any) => sum + item.quantity, 0)} units
+                        {sale.items?.reduce((sum: any, item: any) => sum + item.quantity, 0) || 0} units
                       </p>
                     </td>
                     <td>
