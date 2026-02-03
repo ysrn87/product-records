@@ -64,11 +64,13 @@ export async function getSales(filters?: {
       id: true,
       invoiceNumber: true,
       date: true,
+      items: true,
       totalAmount: true,
+      paymentMethod: true,
       status: true,
       customer: {
-        select: { id: true, name: true },
-      },
+        select: { id: true, name: true, phone:true },
+      },      
       salesperson: {
         select: { id: true, name: true },
       },

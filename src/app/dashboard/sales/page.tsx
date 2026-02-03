@@ -102,13 +102,14 @@ export default async function SalesPage({
           <table>
             <thead>
               <tr>
-                <th>Invoice</th>
+                <th>Date</th>
+                <th>Sales</th>
                 <th>Customer</th>
                 <th>Items</th>
-                <th>Payment</th>
                 <th>Total</th>
+                <th>Payment</th>
                 <th>Status</th>
-                <th>Date</th>
+                <th>Invoice</th>
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
@@ -130,29 +131,27 @@ export default async function SalesPage({
                 sales.map((sale: any) => (
                   <tr key={sale.id}>
                     <td>
-                      <p className="font-mono text-sm font-medium text-gray-900">
-                        {sale.invoiceNumber}
+                      <p className="text-xs text-gray-500">
+                        {formatDateTime(sale.date)}
                       </p>
                     </td>
                     <td>
-                      <p className="font-medium text-gray-900">{sale.customer.name}</p>
+                      <p className="text-xs text-gray-500">{sale.salesperson.name}</p>
+                    </td>
+                    <td>
+                      <p className="font-semibold text-gray-900">{sale.customer.name}</p>
                       {sale.customer.phone && (
-                        <p className="text-sm text-gray-500">{sale.customer.phone}</p>
+                        <p className="text-xs text-gray-500">{sale.customer.phone}</p>
                       )}
                     </td>
                     <td>
-                      <p className="text-gray-900">{sale.items?.length || 0} items</p>
-                      <p className="text-sm text-gray-500">
-                        {sale.items?.reduce((sum: any, item: any) => sum + item.quantity, 0) || 0} units
+                      <p className="text-xs text-gray-900">{sale.items?.length || 0} item(s)</p>
+                      <p className="text-xs text-gray-500">
+                        {sale.items?.reduce((sum: any, item: any) => sum + item.quantity, 0) || 0} unit(s)
                       </p>
                     </td>
                     <td>
-                      <span className="badge-gray">
-                        {paymentMethodNames[sale.paymentMethod]}
-                      </span>
-                    </td>
-                    <td>
-                      <p className="font-semibold text-gray-900">
+                      <p className="text-xs font-semibold text-gray-900">
                         {formatCurrency(Number(sale.totalAmount))}
                       </p>
                       {Number(sale.discountAmount) > 0 && (
@@ -160,6 +159,11 @@ export default async function SalesPage({
                           -{formatCurrency(Number(sale.discountAmount))} disc
                         </p>
                       )}
+                    </td>
+                    <td>
+                      <span className="text-xs">
+                        {paymentMethodNames[sale.paymentMethod]}
+                      </span>
                     </td>
                     <td>
                       {sale.status === 'COMPLETED' && (
@@ -173,8 +177,8 @@ export default async function SalesPage({
                       )}
                     </td>
                     <td>
-                      <p className="text-sm text-gray-500">
-                        {formatDateTime(sale.date)}
+                      <p className="font-mono text-xs font-medium text-gray-900">
+                        {sale.invoiceNumber}
                       </p>
                     </td>
                     <td>
