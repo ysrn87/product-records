@@ -4,11 +4,12 @@ import { getCustomers } from '@/actions/customers';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import Link from 'next/link';
 import { Plus, Users, Search, Eye, Edit, ShoppingCart } from 'lucide-react';
+import Pagination from '@/components/ui/Pagination';
 
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string }>;
+  searchParams: Promise<{ search?: string; page?: string }>;
 }) {
   const session = await auth();
   if (!session?.user || !['PRIVILEGE', 'ADMIN', 'SALES'].includes(session.user.role)) {
@@ -16,7 +17,9 @@ export default async function CustomersPage({
   }
 
   const params = await searchParams;
-  const customers = await getCustomers(params.search);
+  const currentPage = Number(params.page) || 1;
+
+  const { customers, pagination } = await getCustomers({ search: params.search, page: currentPage });
   const isSalesRole = session.user.role === 'SALES';
 
   return (
@@ -184,6 +187,14 @@ export default async function CustomersPage({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.total}
+          pageSize={pagination.pageSize}
+        />
       </div>
     </div>
   );

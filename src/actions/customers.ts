@@ -13,10 +13,17 @@ const customerSchema = z.object({
   email: z.string().email().optional().or(z.literal('')),
 });
 
-// Get customers - filtered by role
-export async function getCustomers(search?: string) {
+// Pagination config
+const PAGE_SIZE = 20;
+
+// Get customers - filtered by role with pagination
+export async function getCustomers(filters?: { search?: string; page?: number }) {
   const session = await auth();
-  if (!session?.user) return [];
+  if (!session?.user) return { customers: [], pagination: { page: 1, pageSize: PAGE_SIZE, total: 0, totalPages: 0 } };
+
+  const page = filters?.page || 1;
+  const skip = (page - 1) * PAGE_SIZE;
+  const search = filters?.search;
 
   // Build where clause
   let whereClause: any = {};
@@ -48,33 +55,50 @@ export async function getCustomers(search?: string) {
     };
   }
 
-  const customers = await prisma.customer.findMany({
-    where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
-    include: {
-      sales: {
-        where: session.user.role === 'SALES' 
-          ? { status: 'COMPLETED', salespersonId: session.user.id }
-          : { status: 'COMPLETED' },
-        select: {
-          id: true,
-          status: true,
-          totalAmount: true,
-          date: true,
-        },
-        orderBy: { date: 'desc' },
-      },
-      _count: {
-        select: { 
-          sales: session.user.role === 'SALES'
-            ? { where: { salespersonId: session.user.id } }
-            : true,
-        },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+  const finalWhere = Object.keys(whereClause).length > 0 ? whereClause : undefined;
 
-  return customers;
+  // Run count and data queries in parallel
+  const [customers, total] = await Promise.all([
+    prisma.customer.findMany({
+      where: finalWhere,
+      include: {
+        sales: {
+          where: session.user.role === 'SALES' 
+            ? { status: 'COMPLETED', salespersonId: session.user.id }
+            : { status: 'COMPLETED' },
+          select: {
+            id: true,
+            status: true,
+            totalAmount: true,
+            date: true,
+          },
+          orderBy: { date: 'desc' },
+          take: 5, // Only get last 5 sales for preview
+        },
+        _count: {
+          select: { 
+            sales: session.user.role === 'SALES'
+              ? { where: { salespersonId: session.user.id } }
+              : true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: PAGE_SIZE,
+    }),
+    prisma.customer.count({ where: finalWhere }),
+  ]);
+
+  return {
+    customers,
+    pagination: {
+      page,
+      pageSize: PAGE_SIZE,
+      total,
+      totalPages: Math.ceil(total / PAGE_SIZE),
+    },
+  };
 }
 
 // Get single customer

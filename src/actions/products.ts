@@ -28,42 +28,65 @@ const categorySchema = z.object({
   description: z.string().optional(),
 });
 
-// Get all products
-export async function getProducts(searchQuery?: string) {
-  const products = serializeData(await prisma.product.findMany({
-    where: searchQuery
-      ? {
-          OR: [
-            { name: { contains: searchQuery, mode: 'insensitive' } },
-            { description: { contains: searchQuery, mode: 'insensitive' } },
-          ],
-        }
-      : undefined,
-    include: {
-      category: true,
-      variants: {
-        include: {
-          variantValues: {
-            include: {
-              variantOption: {
-                include: {
-                  variantType: true,
+// Pagination config
+const PAGE_SIZE = 10;
+
+// Get all products with pagination
+export async function getProducts(filters?: { search?: string; page?: number }) {
+  const page = filters?.page || 1;
+  const skip = (page - 1) * PAGE_SIZE;
+  const searchQuery = filters?.search;
+
+  const where = searchQuery
+    ? {
+        OR: [
+          { name: { contains: searchQuery, mode: 'insensitive' as const } },
+          { description: { contains: searchQuery, mode: 'insensitive' as const } },
+        ],
+      }
+    : undefined;
+
+  // Run count and data queries in parallel
+  const [products, total] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      include: {
+        category: true,
+        variants: {
+          include: {
+            variantValues: {
+              include: {
+                variantOption: {
+                  include: {
+                    variantType: true,
+                  },
                 },
               },
             },
           },
         },
-      },
-      variantTypes: {
-        include: {
-          options: true,
+        variantTypes: {
+          include: {
+            options: true,
+          },
         },
       },
-    },
-    orderBy: { createdAt: 'desc' },
-  }));
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: PAGE_SIZE,
+    }),
+    prisma.product.count({ where }),
+  ]);
 
-  return products;
+  return {
+    products: serializeData(products),
+    pagination: {
+      page,
+      pageSize: PAGE_SIZE,
+      total,
+      totalPages: Math.ceil(total / PAGE_SIZE),
+    },
+  };
 }
 
 // Get single product

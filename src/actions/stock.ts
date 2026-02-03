@@ -7,6 +7,9 @@ import { z } from 'zod';
 import { generateStockEntryNumber } from '@/lib/utils';
 import { serializeData } from '@/lib/utils';
 
+// Pagination config
+const PAGE_SIZE = 10;
+
 // Schemas
 const stockEntryItemSchema = z.object({
   variantId: z.string().min(1),
@@ -19,13 +22,17 @@ const createStockEntrySchema = z.object({
   items: z.array(stockEntryItemSchema).min(1, 'At least one item is required'),
 });
 
-// Get stock entries with filters
+// Get stock entries with filters and pagination
 export async function getStockEntries(filters?: {
   startDate?: Date;
   endDate?: Date;
   status?: string;
   search?: string;
+  page?: number;
 }) {
+  const page = filters?.page || 1;
+  const skip = (page - 1) * PAGE_SIZE;
+
   const where: Record<string, unknown> = {};
 
   if (filters?.startDate && filters?.endDate) {
@@ -43,33 +50,38 @@ export async function getStockEntries(filters?: {
     where.entryNumber = { contains: filters.search, mode: 'insensitive' };
   }
 
-  const entries = serializeData(await prisma.stockEntry.findMany({
-    where,
-    include: {
-      recordedBy: true,
-      items: {
-        include: {
-          variant: {
-            include: {
-              product: true,
-              variantValues: {
-                include: {
-                  variantOption: {
-                    include: {
-                      variantType: true,
-                    },
-                  },
-                },
+  // Run count and data queries in parallel
+  const [entries, total] = await Promise.all([
+    prisma.stockEntry.findMany({
+      where,
+      include: {
+        recordedBy: true,
+        items: {
+          include: {
+            variant: {
+              include: {
+                product: true,
               },
             },
           },
         },
       },
-    },
-    orderBy: { date: 'desc' },
-  }));
+      orderBy: { date: 'desc' },
+      skip,
+      take: PAGE_SIZE,
+    }),
+    prisma.stockEntry.count({ where }),
+  ]);
 
-  return entries;
+  return {
+    entries: serializeData(entries),
+    pagination: {
+      page,
+      pageSize: PAGE_SIZE,
+      total,
+      totalPages: Math.ceil(total / PAGE_SIZE),
+    },
+  };
 }
 
 // Get single stock entry

@@ -27,14 +27,21 @@ const createSaleSchema = z.object({
   items: z.array(saleItemSchema).min(1, 'At least one item is required'),
 });
 
-// Get sales with filters
+// Pagination config
+const PAGE_SIZE = 10;
+
+// Get sales with filters and pagination
 export async function getSales(filters?: {
   startDate?: Date;
   endDate?: Date;
   salespersonId?: string;
   status?: string;
   search?: string;
+  page?: number;
 }) {
+  const page = filters?.page || 1;
+  const skip = (page - 1) * PAGE_SIZE;
+
   const where: Record<string, unknown> = {};
 
   if (filters?.startDate && filters?.endDate) {
@@ -59,28 +66,39 @@ export async function getSales(filters?: {
     ];
   }
 
-  const sales = serializeData(await prisma.sale.findMany({
-    select: {
-      id: true,
-      invoiceNumber: true,
-      date: true,
-      items: true,
-      totalAmount: true,
-      paymentMethod: true,
-      status: true,
-      customer: {
-        select: { id: true, name: true, phone:true },
-      },      
-      salesperson: {
-        select: { id: true, name: true },
+  // Run count and data queries in parallel
+  const [sales, total] = await Promise.all([
+    prisma.sale.findMany({
+      where,
+      include: {
+        customer: true,
+        salesperson: true,
+        items: {
+          include: {
+            variant: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        },
       },
-      _count: {
-        select: { items: true },
-      },
-    },
-  }));
+      orderBy: { date: 'desc' },
+      skip,
+      take: PAGE_SIZE,
+    }),
+    prisma.sale.count({ where }),
+  ]);
 
-  return sales;
+  return {
+    sales: serializeData(sales),
+    pagination: {
+      page,
+      pageSize: PAGE_SIZE,
+      total,
+      totalPages: Math.ceil(total / PAGE_SIZE),
+    },
+  };
 }
 
 // Get single sale
@@ -130,22 +148,19 @@ export async function createSale(data: z.infer<typeof createSaleSchema>) {
 
   try {
     // Check stock availability
-    // ✅ GOOD: Single query for all variants
-const variantIds = items.map(i => i.variantId);
-const variants = await prisma.productVariant.findMany({
-  where: { id: { in: variantIds } },
-  select: { id: true, sku: true, currentStock: true },
-});
+    for (const item of items) {
+      const variant = serializeData(await prisma.productVariant.findUnique({
+        where: { id: item.variantId },
+      }));
 
-const variantMap = new Map(variants.map(v => [v.id, v]));
+      if (!variant) {
+        return { error: `Product variant not found` };
+      }
 
-for (const item of items) {
-  const variant = variantMap.get(item.variantId);
-  if (!variant) return { error: 'Product variant not found' };
-  if (variant.currentStock < item.quantity) {
-    return { error: `Insufficient stock for ${variant.sku}` };
-  }
-}
+      if (variant.currentStock < item.quantity) {
+        return { error: `Insufficient stock for ${variant.sku}. Available: ${variant.currentStock}` };
+      }
+    }
 
     // Get or create customer
     let finalCustomerId = customerId;
@@ -354,11 +369,11 @@ export async function getAvailableVariants(search?: string) {
       currentStock: { gt: 0 },
       ...(search
         ? {
-          OR: [
-            { sku: { contains: search, mode: 'insensitive' } },
-            { product: { name: { contains: search, mode: 'insensitive' } } },
-          ],
-        }
+            OR: [
+              { sku: { contains: search, mode: 'insensitive' } },
+              { product: { name: { contains: search, mode: 'insensitive' } } },
+            ],
+          }
         : {}),
     },
     include: {

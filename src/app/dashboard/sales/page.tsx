@@ -4,11 +4,12 @@ import { getSales } from '@/actions/sales';
 import { formatCurrency, formatDateTime, paymentMethodNames } from '@/lib/utils';
 import Link from 'next/link';
 import { Plus, ShoppingCart, Search, Eye, FileText } from 'lucide-react';
+import Pagination from '@/components/ui/Pagination';
 
 export default async function SalesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; status?: string }>;
+  searchParams: Promise<{ search?: string; status?: string; page?: string }>;
 }) {
   const session = await auth();
   if (!session?.user || !['PRIVILEGE', 'ADMIN', 'SALES'].includes(session.user.role)) {
@@ -16,18 +17,20 @@ export default async function SalesPage({
   }
 
   const params = await searchParams;
+  const currentPage = Number(params.page) || 1;
 
   // For SALES role, only show their own sales
-  const filters: { search?: string; status?: string; salespersonId?: string } = {
+  const filters: { search?: string; status?: string; salespersonId?: string; page?: number } = {
     search: params.search,
     status: params.status,
+    page: currentPage,
   };
 
   if (session.user.role === 'SALES') {
     filters.salespersonId = session.user.id;
   }
 
-  const sales = await getSales(filters);
+  const { sales, pagination } = await getSales(filters);
 
   return (
     <div className="space-y-6">
@@ -102,14 +105,13 @@ export default async function SalesPage({
           <table>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Sales</th>
+                <th>Invoice</th>
                 <th>Customer</th>
                 <th>Items</th>
-                <th>Total</th>
                 <th>Payment</th>
+                <th>Total</th>
                 <th>Status</th>
-                <th>Invoice</th>
+                <th>Date</th>
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
@@ -131,27 +133,29 @@ export default async function SalesPage({
                 sales.map((sale: any) => (
                   <tr key={sale.id}>
                     <td>
-                      <p className="text-xs text-gray-500">
-                        {formatDateTime(sale.date)}
+                      <p className="font-mono text-sm font-medium text-gray-900">
+                        {sale.invoiceNumber}
                       </p>
                     </td>
                     <td>
-                      <p className="text-xs text-gray-500">{sale.salesperson.name}</p>
-                    </td>
-                    <td>
-                      <p className="font-semibold text-gray-900">{sale.customer.name}</p>
-                      {sale.customer.phone && (
-                        <p className="text-xs text-gray-500">{sale.customer.phone}</p>
+                      <p className="font-medium text-gray-900">{sale.customer?.name}</p>
+                      {sale.customer?.phone && (
+                        <p className="text-sm text-gray-500">{sale.customer.phone}</p>
                       )}
                     </td>
                     <td>
-                      <p className="text-xs text-gray-900">{sale.items?.length || 0} item(s)</p>
-                      <p className="text-xs text-gray-500">
-                        {sale.items?.reduce((sum: any, item: any) => sum + item.quantity, 0) || 0} unit(s)
+                      <p className="text-gray-900">{sale.items?.length || 0} items</p>
+                      <p className="text-sm text-gray-500">
+                        {sale.items?.reduce((sum: any, item: any) => sum + item.quantity, 0) || 0} units
                       </p>
                     </td>
                     <td>
-                      <p className="text-xs font-semibold text-gray-900">
+                      <span className="badge-gray">
+                        {paymentMethodNames[sale.paymentMethod]}
+                      </span>
+                    </td>
+                    <td>
+                      <p className="font-semibold text-gray-900">
                         {formatCurrency(Number(sale.totalAmount))}
                       </p>
                       {Number(sale.discountAmount) > 0 && (
@@ -159,11 +163,6 @@ export default async function SalesPage({
                           -{formatCurrency(Number(sale.discountAmount))} disc
                         </p>
                       )}
-                    </td>
-                    <td>
-                      <span className="text-xs">
-                        {paymentMethodNames[sale.paymentMethod]}
-                      </span>
                     </td>
                     <td>
                       {sale.status === 'COMPLETED' && (
@@ -177,8 +176,8 @@ export default async function SalesPage({
                       )}
                     </td>
                     <td>
-                      <p className="font-mono text-xs font-medium text-gray-900">
-                        {sale.invoiceNumber}
+                      <p className="text-sm text-gray-500">
+                        {formatDateTime(sale.date)}
                       </p>
                     </td>
                     <td>
@@ -205,6 +204,14 @@ export default async function SalesPage({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.total}
+          pageSize={pagination.pageSize}
+        />
       </div>
     </div>
   );

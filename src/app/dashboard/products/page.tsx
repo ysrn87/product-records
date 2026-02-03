@@ -7,11 +7,12 @@ import { Plus, Package, Search, Eye, Edit, Power } from 'lucide-react';
 import ProductActions from './ProductActions';
 import { serializeData } from '@/lib/utils';
 import CategoryManager from './CategoryManager';
+import Pagination from '@/components/ui/Pagination';
 
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string }>;
+  searchParams: Promise<{ search?: string; page?: string }>;
 }) {
   const session = await auth();
   if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
@@ -19,7 +20,9 @@ export default async function ProductsPage({
   }
 
   const params = await searchParams;
-  const products = serializeData(await getProducts(params.search));
+  const currentPage = Number(params.page) || 1;
+
+  const { products, pagination } = await getProducts({ search: params.search, page: currentPage });
   const categories = await getCategories();
 
   return (
@@ -170,6 +173,14 @@ export default async function ProductsPage({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.total}
+          pageSize={pagination.pageSize}
+        />
       </div>
     </div>
   );

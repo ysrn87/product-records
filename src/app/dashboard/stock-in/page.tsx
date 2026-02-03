@@ -5,12 +5,12 @@ import { formatDateTime, formatNumber } from '@/lib/utils';
 import Link from 'next/link';
 import { Plus, PackagePlus, Search, Eye, XCircle } from 'lucide-react';
 import StockEntryActions from './StockEntryActions';
-import { serializeData } from '@/lib/utils';
+import Pagination from '@/components/ui/Pagination';
 
 export default async function StockInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; status?: string }>;
+  searchParams: Promise<{ search?: string; status?: string; page?: string }>;
 }) {
   const session = await auth();
   if (!session?.user || !['PRIVILEGE', 'ADMIN', 'WAREHOUSE'].includes(session.user.role)) {
@@ -18,10 +18,13 @@ export default async function StockInPage({
   }
 
   const params = await searchParams;
-  const entries = serializeData(await getStockEntries({
+  const currentPage = Number(params.page) || 1;
+
+  const { entries, pagination } = await getStockEntries({
     search: params.search,
     status: params.status,
-  }));
+    page: currentPage,
+  });
 
   return (
     <div className="space-y-6">
@@ -176,6 +179,14 @@ export default async function StockInPage({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.total}
+          pageSize={pagination.pageSize}
+        />
       </div>
     </div>
   );
