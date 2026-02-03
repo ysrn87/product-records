@@ -14,7 +14,7 @@ const customerSchema = z.object({
 });
 
 // Pagination config
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 // Get customers - filtered by role with pagination
 export async function getCustomers(filters?: { search?: string; page?: number }) {
