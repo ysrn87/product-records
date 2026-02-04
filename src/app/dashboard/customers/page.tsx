@@ -3,8 +3,9 @@ import { redirect } from 'next/navigation';
 import { getCustomers } from '@/actions/customers';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import Link from 'next/link';
-import { Plus, Users, Search, Eye, Edit, ShoppingCart } from 'lucide-react';
+import { Users, Search, Eye, Edit, ShoppingCart } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
+import AddCustomerButton from './AddCustomerButton';
 
 export default async function CustomersPage({
   searchParams,
@@ -37,10 +38,7 @@ export default async function CustomersPage({
             }
           </p>
         </div>
-        <Link href="/dashboard/customers/new" className="btn-primary">
-          <Plus className="w-5 h-5" />
-          Add Customer
-        </Link>
+        <AddCustomerButton />
       </div>
 
       {/* Search */}

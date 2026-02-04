@@ -3,8 +3,9 @@ import { redirect } from 'next/navigation';
 import { getSales } from '@/actions/sales';
 import { formatCurrency, formatDateTime, paymentMethodNames } from '@/lib/utils';
 import Link from 'next/link';
-import { Plus, ShoppingCart, Search, Eye, FileText } from 'lucide-react';
+import { ShoppingCart, Search, Eye, FileText } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
+import NewSaleButton from './NewSaleButton';
 
 export default async function SalesPage({
   searchParams,
@@ -42,10 +43,7 @@ export default async function SalesPage({
             {session.user.role === 'SALES' ? 'Your sales transactions' : 'All sales transactions'}
           </p>
         </div>
-        <Link href="/dashboard/sales/new" className="btn-primary">
-          <Plus className="w-5 h-5" />
-          New Sale
-        </Link>
+        <NewSaleButton />
       </div>
 
       {/* Search and Filters */}

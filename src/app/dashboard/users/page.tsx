@@ -3,8 +3,9 @@ import { redirect } from 'next/navigation';
 import { getUsers } from '@/actions/users';
 import { formatDateTime, roleDisplayNames } from '@/lib/utils';
 import Link from 'next/link';
-import { Plus, Users, Search, Edit, Power } from 'lucide-react';
+import { Users, Search, Edit } from 'lucide-react';
 import UserActions from './UserActions';
+import AddUserButton from './AddUserButton';
 
 export default async function UsersPage({
   searchParams,
@@ -18,6 +19,9 @@ export default async function UsersPage({
 
   const params = await searchParams;
   const users = await getUsers();
+  const allowedRoles = session.user.role === 'PRIVILEGE'
+  ? ['ADMIN', 'SALES', 'WAREHOUSE']
+  : ['SALES', 'WAREHOUSE'];
 
   return (
     <div className="space-y-6">
@@ -29,10 +33,7 @@ export default async function UsersPage({
             Manage user accounts and access
           </p>
         </div>
-        <Link href="/dashboard/users/new" className="btn-primary">
-          <Plus className="w-5 h-5" />
-          Add User
-        </Link>
+        <AddUserButton allowedRoles={allowedRoles} />
       </div>
       {/* Search and Filters */}
       <div className="card">

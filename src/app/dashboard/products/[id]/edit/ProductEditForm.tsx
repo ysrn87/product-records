@@ -123,7 +123,7 @@ export default function ProductEditForm({ product, categories }: ProductEditForm
 
             {/* Actions */}
             <div className="flex items-center justify-end gap-3 pt-4 border-t">
-              <Link href={`/dashboard/products/${product.id}`} className="btn-secondary">
+              <Link href={`/dashboard/products/`} className="btn-secondary">
                 Cancel
               </Link>
               <button type="submit" disabled={isLoading} className="btn-primary">

@@ -3,9 +3,10 @@ import { redirect } from 'next/navigation';
 import { getStockEntries } from '@/actions/stock';
 import { formatDateTime, formatNumber } from '@/lib/utils';
 import Link from 'next/link';
-import { Plus, PackagePlus, Search, Eye, XCircle } from 'lucide-react';
+import { PackagePlus, Search, Eye } from 'lucide-react';
 import StockEntryActions from './StockEntryActions';
 import Pagination from '@/components/ui/Pagination';
+import NewStockEntryButton from './NewStockEntryButton';
 
 export default async function StockInPage({
   searchParams,
@@ -26,6 +27,8 @@ export default async function StockInPage({
     page: currentPage,
   });
 
+  const isWarehouse = session.user.role === 'WAREHOUSE';
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -34,10 +37,7 @@ export default async function StockInPage({
           <h1 className="text-2xl font-bold text-gray-900">Stock In</h1>
           <p className="text-gray-500 mt-1">Record incoming product stock</p>
         </div>
-        <Link href="/dashboard/stock-in/new" className="btn-primary">
-          <Plus className="w-5 h-5" />
-          New Stock Entry
-        </Link>
+        <NewStockEntryButton isWarehouse={isWarehouse} />
       </div>
 
       {/* Search and Filters */}

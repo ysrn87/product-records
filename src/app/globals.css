@@ -358,28 +358,33 @@ tbody tr:hover {
   
   body {
     background-color: white;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
   
   .card {
     box-shadow: none;
     border: none;
   }
-}
-
-/* Print styles */
-@media print {
-  .no-print {
-    display: none !important;
-  }
   
-  body {
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-
   main {
     padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Ensure content takes full width when printing */
+  .flex.min-h-screen {
+    display: block !important;
+  }
+  
+  .flex-1 {
+    width: 100% !important;
+  }
+  
+  .max-w-7xl {
+    max-width: 100% !important;
   }
 }
 

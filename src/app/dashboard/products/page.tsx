@@ -3,11 +3,12 @@ import { redirect } from 'next/navigation';
 import { getProducts, getCategories } from '@/actions/products';
 import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
-import { Plus, Package, Search, Eye, Edit, Power } from 'lucide-react';
+import { Package, Search, Eye, Edit } from 'lucide-react';
 import ProductActions from './ProductActions';
 import { serializeData } from '@/lib/utils';
 import CategoryManager from './CategoryManager';
 import Pagination from '@/components/ui/Pagination';
+import AddProductButton from './AddProductButton';
 
 export default async function ProductsPage({
   searchParams,
@@ -35,10 +36,7 @@ export default async function ProductsPage({
         </div>
         <div className="flex items-center gap-2">
           <CategoryManager categories={serializeData(categories)} />
-          <Link href="/dashboard/products/new" className="btn-primary">
-            <Plus className="w-5 h-5" />
-            Add Product
-          </Link>
+          <AddProductButton/>
         </div>
       </div>
 
