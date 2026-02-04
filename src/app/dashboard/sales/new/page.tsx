@@ -473,7 +473,7 @@ export default function NewSalePage() {
                             max={item.variant.currentStock}
                             value={item.quantity}
                             onChange={(e) =>
-                              updateQuantity(item.variantId, parseInt(e.target.value) || 1)
+                              updateQuantity(item.variantId, parseInt(e.target.value) || parseInt(e.target.value))
                             }
                             className="w-full sm:w-24 text-center"
                           />
