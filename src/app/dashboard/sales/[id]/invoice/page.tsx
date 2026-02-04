@@ -3,8 +3,6 @@ import { redirect, notFound } from 'next/navigation';
 import { getSale } from '@/actions/sales';
 import { getCompanyProfile } from '@/actions/settings';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import Link from 'next/link';
-import { ArrowLeft, Printer } from 'lucide-react';
 import PrintButton from './PrintButton';
 
 export default async function InvoicePage({
@@ -158,7 +156,7 @@ export default async function InvoicePage({
             </div>
             {Number(sale.discountAmount) > 0 && (
               <div className="flex justify-between py-2 text-green-600">
-                <span>Discount</span>
+                <span>Additional Discount</span>
                 <span className="font-medium">
                   -{formatCurrency(Number(sale.discountAmount))}
                 </span>
