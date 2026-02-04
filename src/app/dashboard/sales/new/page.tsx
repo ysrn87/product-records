@@ -464,9 +464,9 @@ export default function NewSalePage() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <label className="text-sm text-gray-600">Qty:</label>
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                        <div className="flex items-center gap-2 flex-1">
+                          <label className="text-sm text-gray-600 whitespace-nowrap">Qty:</label>
                           <input
                             type="number"
                             min="1"
@@ -475,11 +475,11 @@ export default function NewSalePage() {
                             onChange={(e) =>
                               updateQuantity(item.variantId, parseInt(e.target.value) || 1)
                             }
-                            className="w-20 text-center"
+                            className="w-full sm:w-24 text-center"
                           />
                         </div>
-                        <div className="flex items-center gap-2">
-                          <label className="text-sm text-gray-600">Disc %:</label>
+                        <div className="flex items-center gap-2 flex-1">
+                          <label className="text-sm text-gray-600 whitespace-nowrap">Disc %:</label>
                           <input
                             type="number"
                             min="0"
@@ -488,10 +488,10 @@ export default function NewSalePage() {
                             onChange={(e) =>
                               updateDiscount(item.variantId, parseFloat(e.target.value) || 0)
                             }
-                            className="w-20 text-center"
+                            className="w-full sm:w-24 text-center"
                           />
                         </div>
-                        <div className="ml-auto text-right">
+                        <div className="sm:ml-auto text-left sm:text-right">
                           <p className="font-semibold text-gray-900">
                             {formatCurrency(
                               item.unitPrice * item.quantity * (1 - item.discountPercent / 100)

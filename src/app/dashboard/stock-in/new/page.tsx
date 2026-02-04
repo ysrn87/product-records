@@ -272,9 +272,9 @@ export default function NewStockEntryPage() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <label className="text-sm text-gray-600">Qty:</label>
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                        <div className="flex items-center gap-2 flex-1">
+                          <label className="text-sm text-gray-600 whitespace-nowrap">Qty:</label>
                           <input
                             type="number"
                             min="1"
@@ -282,12 +282,12 @@ export default function NewStockEntryPage() {
                             onChange={(e) =>
                               updateQuantity(item.variantId, parseInt(e.target.value) || 1)
                             }
-                            className="w-20 text-center"
+                            className="w-full sm:w-24 text-center"
                           />
                         </div>
                         {!isWarehouse && (
-                          <div className="flex items-center gap-2">
-                            <label className="text-sm text-gray-600">Cost:</label>
+                          <div className="flex items-center gap-2 flex-1">
+                            <label className="text-sm text-gray-600 whitespace-nowrap">Cost:</label>
                             <input
                               type="number"
                               min="0"
@@ -296,12 +296,12 @@ export default function NewStockEntryPage() {
                               onChange={(e) =>
                                 updateCostPrice(item.variantId, parseFloat(e.target.value) || 0)
                               }
-                              className="w-32"
+                              className="w-full sm:w-36"
                             />
                           </div>
                         )}
                         {!isWarehouse && (
-                          <div className="ml-auto text-right">
+                          <div className="sm:ml-auto text-left sm:text-right">
                             <p className="font-semibold text-gray-900">
                               {formatCurrency(item.quantity * item.costPrice)}
                             </p>

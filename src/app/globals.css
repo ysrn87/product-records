@@ -387,3 +387,52 @@ tbody tr:hover {
 .overflow-visible {
   overflow: visible !important;
 }
+/* Mobile responsive input widths */
+@media (max-width: 640px) {
+  /* Make number inputs in flex containers more flexible on mobile */
+  input[type="number"].w-20,
+  input[type="number"].w-32 {
+    min-width: 80px;
+    flex: 1;
+  }
+  
+  /* Ensure input groups stack better on mobile */
+  .flex.items-center.gap-2,
+  .flex.items-center.gap-4 {
+    flex-wrap: wrap;
+  }
+  
+  /* Specific mobile styles for cart/stock item inputs */
+  .bg-gray-50.rounded-lg.p-4 .flex.items-center.gap-4 {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .bg-gray-50.rounded-lg.p-4 .flex.items-center.gap-4 > div {
+    width: 100%;
+  }
+  
+  .bg-gray-50.rounded-lg.p-4 .flex.items-center.gap-2 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .bg-gray-50.rounded-lg.p-4 .flex.items-center.gap-2 input {
+    min-width: 100px;
+    flex: 1;
+  }
+  
+  .bg-gray-50.rounded-lg.p-4 .ml-auto {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+  
+  /* Price/cost inputs should be larger on mobile */
+  input[type="number"][step="100"] {
+    min-width: 120px;
+  }
+}
