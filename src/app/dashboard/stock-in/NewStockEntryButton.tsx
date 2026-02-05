@@ -15,7 +15,7 @@ export default function NewStockEntryButton({ isWarehouse = false }: NewStockEnt
     <>
       <button onClick={() => setIsOpen(true)} className="btn-primary">
         <Plus className="w-5 h-5" />
-        New Stock Entry
+        New
       </button>
       <NewStockEntryModal 
         isOpen={isOpen} 

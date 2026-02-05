@@ -46,7 +46,7 @@ async function getDashboardStats(userRole: string, userId: string) {
     const salesFilter = userRole === 'SALES' ? { salespersonId: userId } : {};
 
     // Today's sales
-    const [todaySalesData, thisMonthSalesData, lastMonthSalesData, recentSales] =
+    const [todaySalesData, thisMonthSalesData, lastMonthSalesData, recentSalesData] =
       await Promise.all([
         prisma.sale.aggregate({
           where: {
@@ -110,6 +110,7 @@ async function getDashboardStats(userRole: string, userId: string) {
       count: thisMonthSalesData._count,
     };
     lastMonthSales = Number(lastMonthSalesData._sum.totalAmount) || 0;
+    recentSales = recentSalesData
   }
 
   // Stock entries (for warehouse)

@@ -15,7 +15,7 @@ export default function AddUserButton({ allowedRoles }: AddUserButtonProps) {
     <>
       <button onClick={() => setIsOpen(true)} className="btn-primary">
         <Plus className="w-5 h-5" />
-        Add User
+        Add
       </button>
       <AddUserModal 
         isOpen={isOpen} 

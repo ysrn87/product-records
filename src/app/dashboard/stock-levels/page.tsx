@@ -77,9 +77,9 @@ export default async function StockLevelsPage({
           <p className="text-gray-500 mt-1">Monitor inventory across all products</p>
         </div>
         {session.user.role !== 'SALES' && (
-          <Link href="/dashboard/stock-in/new" className="btn-primary">
+          <Link href="/dashboard/stock-in" className="btn-primary">
             <Package className="w-5 h-5" />
-            Add Stock
+            Manage Stock
           </Link>
         )}
       </div>

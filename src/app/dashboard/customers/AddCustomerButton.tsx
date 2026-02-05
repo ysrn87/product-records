@@ -11,7 +11,7 @@ export default function AddCustomerButton() {
     <>
       <button onClick={() => setIsOpen(true)} className="btn-primary">
         <Plus className="w-5 h-5" />
-        Add Customer
+        New
       </button>
       <AddCustomerModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>

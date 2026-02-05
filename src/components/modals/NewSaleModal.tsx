@@ -346,7 +346,8 @@ export default function NewSaleModal({ isOpen, onClose }: NewSaleModalProps) {
                     placeholder="Search customer by name or phone..."
                     value={customerSearch}
                     onChange={(e) => handleCustomerSearch(e.target.value)}
-                    className="pl-10 w-full"
+                    className="w-full h-11 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white text-sm placeholder:text-gray-500"
+                    style={{ paddingLeft: '3rem' }}
                   />
                   {customers.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto">
@@ -412,7 +413,8 @@ export default function NewSaleModal({ isOpen, onClose }: NewSaleModalProps) {
                       placeholder="Search by product name or SKU..."
                       value={productSearch}
                       onChange={(e) => setProductSearch(e.target.value)}
-                      className="pl-10"
+                      className="w-full h-11 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white text-sm placeholder:text-gray-500"
+                      style={{ paddingLeft: '3rem' }}
                       autoFocus
                     />
                   </div>

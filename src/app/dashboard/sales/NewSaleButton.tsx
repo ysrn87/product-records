@@ -11,7 +11,7 @@ export default function NewSaleButton() {
     <>
       <button onClick={() => setIsOpen(true)} className="btn-primary">
         <Plus className="w-5 h-5" />
-        New Sale
+        New
       </button>
       <NewSaleModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>

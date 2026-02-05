@@ -208,7 +208,8 @@ export default function NewStockEntryModal({ isOpen, onClose, isWarehouse = fals
                       placeholder="Search by product name or SKU..."
                       value={productSearch}
                       onChange={(e) => setProductSearch(e.target.value)}
-                      className="pl-10"
+                      className="w-full h-11 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white text-sm placeholder:text-gray-500"
+                      style={{ paddingLeft: '3rem' }}
                       autoFocus
                     />
                   </div>
