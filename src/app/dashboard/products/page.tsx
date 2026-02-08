@@ -112,7 +112,11 @@ export default async function ProductsPage({
                   return (
                     <tr key={product.id}>
                       <td>
-                        <span className="badge-gray">{product.category.name}</span>
+                        {product.isActive ? (
+                          <span className="badge-success">{product.category.name}</span>
+                        ) : (
+                          <span className="badge-danger">{product.category.name}</span>
+                        )}
                       </td>
                       <td>
                         <div className="flex items-center gap-3">
@@ -139,7 +143,7 @@ export default async function ProductsPage({
                         {product.isActive ? (
                           <span className="badge-success">Active</span>
                         ) : (
-                          <span className="badge-gray">Inactive</span>
+                          <span className="badge-danger">Inactive</span>
                         )}
                       </td>
                       <td>
