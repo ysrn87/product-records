@@ -387,16 +387,16 @@ export default async function ReportsPage({
                   
                   return (
                     <div key={item.variantId} className="p-4 flex items-center gap-4">
-                      <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm font-medium">
+                      <span className="w-7 h-7 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm font-medium">
                         {i + 1}
                       </span>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">{item.variant?.product.name}</p>
-                        <p className="text-sm text-gray-500">{variantName}</p>
+                        <p className="font-medium text-sm  text-gray-900">{item.variant?.product.name}</p>
+                        <p className="text-xs text-gray-500">{variantName}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium text-gray-900">{formatNumber(item._sum.quantity || 0)} sold</p>
-                        <p className="text-sm text-gray-500">{formatCurrency(Number(item._sum.totalPrice) || 0)}</p>
+                        <p className="font-medium text-sm  text-gray-900">{formatNumber(item._sum.quantity || 0)} sold</p>
+                        <p className="text-xs text-gray-500">{formatCurrency(Number(item._sum.totalPrice) || 0)}</p>
                       </div>
                     </div>
                   );
@@ -421,16 +421,16 @@ export default async function ReportsPage({
               <div className="divide-y divide-gray-100">
                 {data.topCustomers.map((item, i) => (
                   <div key={item.customerId} className="p-4 flex items-center gap-4">
-                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-medium">
+                    <span className="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm font-medium">
                       {i + 1}
                     </span>
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">{item.customer?.name}</p>
-                      <p className="text-sm text-gray-500">{item.customer?.phone || 'No phone'}</p>
+                      <p className="font-medium text-sm text-gray-900">{item.customer?.name}</p>
+                      <p className="text-xs text-gray-500">{item.customer?.phone || 'No phone'}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-gray-900">{formatCurrency(item._sum.totalAmount)}</p>
-                      <p className="text-sm text-gray-500">{item._count} orders</p>
+                      <p className="font-medium text-sm text-gray-900">{formatCurrency(item._sum.totalAmount)}</p>
+                      <p className="text-xs text-gray-500">{item._count} orders</p>
                     </div>
                   </div>
                 ))}

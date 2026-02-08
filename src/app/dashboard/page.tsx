@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { UserRole } from '@prisma/client';
+import { time } from 'console';
 
 async function getDashboardStats(userRole: string, userId: string) {
   const today = new Date();
@@ -386,10 +387,10 @@ export default async function DashboardPage() {
                 <div className="divide-y divide-gray-100">
                   {stats.recentSales.map((sale: any) => (
                     <div key={sale.id} className="p-4 hover:bg-gray-50">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between text-xs">
                         <div>
                           <p className="font-medium text-gray-900">{sale.customer.name}</p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-gray-500">
                             {sale.invoiceNumber} • {sale.items.length} items
                           </p>
                         </div>
@@ -430,17 +431,17 @@ export default async function DashboardPage() {
 
                   return (
                     <div key={variant.id} className="p-4 hover:bg-gray-50">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between text-xs">
                         <div>
-                          <p className="font-medium text-gray-900">{variant.product.name}</p>
-                          <p className="text-sm text-gray-500">{variantName}</p>
+                          <p className="font-medium text-sm text-gray-900">{variant.product.name}</p>
+                          <p className="text-gray-500">{variantName}</p>
                         </div>
                         <div className="text-right">
-                          <p className={`font-semibold ${variant.currentStock <= 0 ? 'text-red-600' : 'text-yellow-600'
+                          <p className={`font-semibold text-sm ${variant.currentStock <= 0 ? 'text-red-600' : 'text-yellow-600'
                             }`}>
                             {variant.currentStock} left
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-gray-500">
                             Min: {variant.minStockLevel}
                           </p>
                         </div>

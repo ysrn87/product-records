@@ -85,7 +85,7 @@ export default async function CustomersPage({
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-xs">
               {customers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-12">
@@ -119,7 +119,7 @@ export default async function CustomersPage({
                     <tr key={customer.id}>
                       <td>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                          <div className="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center">
                             <span className="text-primary-600 font-medium">
                               {customer.name.charAt(0).toUpperCase()}
                             </span>
@@ -127,7 +127,7 @@ export default async function CustomersPage({
                           <div>
                             <p className="font-medium text-gray-900">{customer.name}</p>
                             {customer.address && (
-                              <p className="text-sm text-gray-500 truncate max-w-50">
+                              <p className="text-gray-500 truncate max-w-50">
                                 {customer.address}
                               </p>
                             )}
@@ -137,7 +137,7 @@ export default async function CustomersPage({
                       <td>
                         <p className="text-gray-900">{customer.phone || '-'}</p>
                         {customer.email && (
-                          <p className="text-sm text-gray-500">{customer.email}</p>
+                          <p className="text-gray-500">{customer.email}</p>
                         )}
                       </td>
                       <td>
@@ -153,7 +153,7 @@ export default async function CustomersPage({
                       </td>
                       <td>
                         {lastOrder ? (
-                          <p className="text-sm text-gray-500">
+                          <p className="text-gray-500">
                             {formatDateTime(lastOrder.date)}
                           </p>
                         ) : (

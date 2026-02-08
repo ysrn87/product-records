@@ -76,15 +76,15 @@ export default async function ProductsPage({
           <table>
             <thead>
               <tr>
-                <th>Product</th>
                 <th>Category</th>
+                <th>Product</th>
                 <th>Variants</th>
                 <th>Stock</th>
                 <th>Status</th>
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-xs">
               {products.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-12">
@@ -112,14 +112,14 @@ export default async function ProductsPage({
                   return (
                     <tr key={product.id}>
                       <td>
+                        <span className="badge-gray">{product.category.name}</span>
+                      </td>
+                      <td>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <Package className="w-5 h-5 text-gray-400" />
-                          </div>
                           <div>
                             <p className="font-medium text-gray-900">{product.name}</p>
                             {priceRange && (
-                              <p className="text-sm text-gray-500">
+                              <p className="text-gray-500">
                                 {priceRange.min === priceRange.max
                                   ? formatCurrency(priceRange.min)
                                   : `${formatCurrency(priceRange.min)} - ${formatCurrency(priceRange.max)}`}
@@ -129,11 +129,8 @@ export default async function ProductsPage({
                         </div>
                       </td>
                       <td>
-                        <span className="badge-gray">{product.category.name}</span>
-                      </td>
-                      <td>
                         <p className="text-gray-900">{activeVariants} active</p>
-                        <p className="text-sm text-gray-500">{product.variants.length} total</p>
+                        <p className="text-gray-500">{product.variants.length} total</p>
                       </td>
                       <td>
                         <p className="text-gray-900">{totalStock} units</p>
@@ -152,14 +149,14 @@ export default async function ProductsPage({
                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                             title="View Details"
                           >
-                            <Eye className="w-4 h-4 text-gray-500" />
+                            <Eye className="w-4 h-4 text-gray-500 hover:text-blue-500" />
                           </Link>
                           <Link
                             href={`/dashboard/products/${product.id}/edit`}
                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                             title="Edit"
                           >
-                            <Edit className="w-4 h-4 text-gray-500" />
+                            <Edit className="w-4 h-4 text-gray-500 hover:text-blue-500" />
                           </Link>
                           <ProductActions product={product} />
                         </div>

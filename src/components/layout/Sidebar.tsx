@@ -171,7 +171,7 @@ export default function Sidebar({ userRole, userName }: SidebarProps) {
       <div className={cn(
         'h-16 border-b border-gray-200 shrink-0 flex items-center',
         'transition-all duration-1000 ease-in-out',
-        isCollapsed ? 'px-3 justify-center' : 'px-3'
+        isCollapsed ? 'px-3' : 'px-3'
       )}>
         <Link href="/dashboard" className="flex items-center gap-3">
           <div className={cn(
@@ -216,7 +216,7 @@ export default function Sidebar({ userRole, userName }: SidebarProps) {
                     'flex items-center h-11 rounded-lg transition-all duration-200 ease-in-out',
                     'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
                     isActive && 'bg-primary-50 text-primary-600 hover:bg-primary-100 hover:text-primary-700 shadow-sm',
-                    isCollapsed ? 'justify-center px-0' : 'px-3',
+                    isCollapsed ? 'px-3' : 'px-3',
                     'group'
                   )}
                 >
@@ -252,13 +252,13 @@ export default function Sidebar({ userRole, userName }: SidebarProps) {
       <div className="border-t border-gray-200 shrink-0 p-3 space-y-2">
         {/* User Info */}
         <div className={cn(
-          'bg-gray-50 rounded-lg transition-all duration-1000 ease-in-out',
+          'bg-gray-50 rounded-lg transition-all duration-1000 ease-in-out h-17',
           isCollapsed ? 'p-2' : 'p-3'
         )}>
           {isCollapsed ? (
             <div 
               className={cn(
-                'w-10 h-10 mx-auto bg-primary-100 rounded-full flex items-center justify-center',
+                'w-8 h-8 mx-auto bg-primary-100 rounded-full flex items-center justify-center',
                 'transition-all duration-1000 ease-in-out hover:scale-110 hover:bg-primary-200'
               )}
               title={`${userName} (${ROLE_DISPLAY_NAMES[userRole]})`}
@@ -267,7 +267,7 @@ export default function Sidebar({ userRole, userName }: SidebarProps) {
             </div>
           ) : (
             <div className={cn(
-              'transition-all duration-1000 ease-in-out',
+              'h-8 transition-all duration-1000 ease-in-out',
               isCollapsed ? 'opacity-0' : 'opacity-100 delay-75'
             )}>
               <p className="font-medium text-gray-900 truncate">{userName}</p>

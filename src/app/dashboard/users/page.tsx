@@ -101,7 +101,7 @@ export default async function UsersPage({
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-xs">
               {users.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="text-center py-12">
@@ -120,14 +120,14 @@ export default async function UsersPage({
                   <tr key={user.id}>
                     <td>
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
                           <span className="text-primary-600 font-medium">
                             {user.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{user.name}</p>
-                          <p className="text-sm text-gray-500">{user.email}</p>
+                          <p className="font-medium text-sm text-gray-900">{user.name}</p>
+                          <p className="text-gray-500">{user.email}</p>
                         </div>
                       </div>
                     </td>
@@ -143,11 +143,11 @@ export default async function UsersPage({
                       {user.status === 'ACTIVE' ? (
                         <span className="badge-success">Active</span>
                       ) : (
-                        <span className="badge-gray">Inactive</span>
+                        <span className="badge-danger">Inactive</span>
                       )}
                     </td>
                     <td>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-gray-500">
                         {formatDateTime(user.createdAt)}
                       </p>
                     </td>

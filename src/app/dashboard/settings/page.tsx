@@ -147,7 +147,7 @@ export default async function SettingsPage() {
         {/* Right Column - Quick Stats & Info */}
         <div className="space-y-6">
           {/* System Stats */}
-          <div className="card">
+          <div className="card text-medium">
             <div className="card-header flex items-center gap-3">
               <Shield className="w-5 h-5 text-primary-600" />
               <h2 className="font-semibold text-gray-900">System Overview</h2>

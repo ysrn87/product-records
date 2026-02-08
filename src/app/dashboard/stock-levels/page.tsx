@@ -19,6 +19,7 @@ export default async function StockLevelsPage({
   const search = params.search?.toLowerCase();
   const filter = params.filter;
   const isWarehouse = session.user.role === 'WAREHOUSE';
+  const isSales = session.user.role === 'SALES';
 
   const variants = await prisma.productVariant.findMany({
     where: {
@@ -162,17 +163,17 @@ export default async function StockLevelsPage({
           <table>
             <thead>
               <tr>
-                <th>Product / Variant</th>
-                <th>SKU</th>
                 <th>Category</th>
-                {!isWarehouse && <th className="text-right">Cost Price</th>}
-                {!isWarehouse && <th className="text-right">Selling Price</th>}
+                <th>Product/Variant</th>
+                <th>Status</th>
                 <th className="text-right">Stock</th>
                 <th className="text-right">Min Level</th>
-                <th>Status</th>
+                <th>SKU</th>
+                {(!isWarehouse && !isSales) && <th className="text-right">Cost Price</th>}
+                {(!isWarehouse && !isSales) && <th className="text-right">Selling Price</th>}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-xs">
               {variants.length === 0 ? (
                 <tr>
                   <td colSpan={isWarehouse ? 6 : 8} className="text-center py-12">
@@ -191,48 +192,19 @@ export default async function StockLevelsPage({
 
                   return (
                     <tr key={variant.id} className={isOutOfStock ? 'bg-red-50' : isLowStock ? 'bg-yellow-50' : ''}>
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isOutOfStock ? 'bg-red-100' : isLowStock ? 'bg-yellow-100' : 'bg-gray-100'
-                            }`}>
-                            {isOutOfStock || isLowStock ? (
-                              <AlertTriangle className={`w-5 h-5 ${isOutOfStock ? 'text-red-500' : 'text-yellow-500'}`} />
-                            ) : (
-                              <Package className="w-5 h-5 text-gray-400" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{variant.product.name}</p>
-                            <p className="text-sm text-gray-500">{variantName}</p>
-                          </div>
-                        </div>
+                      <td>                        
+                        {isOutOfStock ? (
+                          <span className="badge-danger">{variant.product.category.name}</span>
+                        ) : isLowStock ? (
+                          <span className="badge-warning">{variant.product.category.name}</span>
+                        ) : (
+                          <span className="badge-success">{variant.product.category.name}</span>
+                        )}
                       </td>
                       <td>
-                        <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">
-                          {variant.sku}
-                        </code>
-                      </td>
-                      <td>
-                        <span className="badge-gray">{variant.product.category.name}</span>
-                      </td>
-                      {!isWarehouse && (
-                        <td className="text-right">
-                          <p className="text-gray-600">{formatCurrency(variant.costPrice)}</p>
-                        </td>
-                      )}
-                      {!isWarehouse && (
-                        <td className="text-right">
-                          <p className="font-medium text-gray-900">{formatCurrency(variant.sellingPrice)}</p>
-                        </td>
-                      )}
-                      <td className="text-right">
-                        <p className={`font-bold ${isOutOfStock ? 'text-red-600' : isLowStock ? 'text-yellow-600' : 'text-gray-900'
-                          }`}>
-                          {formatNumber(variant.currentStock)}
-                        </p>
-                      </td>
-                      <td className="text-right">
-                        <p className="text-gray-500">{formatNumber(variant.minStockLevel)}</p>
+                        <p className="font-medium text-gray-900">{variant.product.name}</p>
+                        <p className="text-gray-500">{variantName}</p>
+
                       </td>
                       <td>
                         {isOutOfStock ? (
@@ -243,6 +215,30 @@ export default async function StockLevelsPage({
                           <span className="badge-success">In Stock</span>
                         )}
                       </td>
+                      <td className="text-right">
+                        <p className={`font-bold ${isOutOfStock ? 'text-red-600' : isLowStock ? 'text-yellow-600' : 'text-gray-900'
+                          }`}>
+                          {formatNumber(variant.currentStock)}
+                        </p>
+                      </td>
+                      <td className="text-right">
+                        <p className="text-gray-500">{formatNumber(variant.minStockLevel)}</p>
+                      </td>
+                      <td>
+                        <code className="bg-gray-100 px-2 py-0.5 rounded">
+                          {variant.sku}
+                        </code>
+                      </td>
+                      {(!isWarehouse && !isSales) && (
+                        <td className="text-right">
+                          <p className="text-gray-600">{formatCurrency(variant.costPrice)}</p>
+                        </td>
+                      )}
+                      {(!isWarehouse && !isSales) && (
+                        <td className="text-right">
+                          <p className="font-medium text-gray-900">{formatCurrency(variant.sellingPrice)}</p>
+                        </td>
+                      )}
                     </tr>
                   );
                 })

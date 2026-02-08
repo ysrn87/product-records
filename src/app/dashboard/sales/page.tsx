@@ -114,7 +114,7 @@ export default async function SalesPage({
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-xs">
               {sales.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="text-center py-12">
@@ -132,39 +132,39 @@ export default async function SalesPage({
                 sales.map((sale: any) => (
                   <tr key={sale.id}>
                     <td>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-gray-500">
                         {formatDateTime(sale.date)}
                       </p>
                     </td>
                     <td>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-gray-500">
                         {sale.salesperson.name}
                       </p>
                     </td>
                     <td>
-                      <p className="font-medium text-sm text-gray-900">{sale.customer?.name}</p>
+                      <p className="font-medium text-gray-900">{sale.customer?.name}</p>
                       {sale.customer?.phone && (
-                        <p className="text-xs text-gray-500">{sale.customer.phone}</p>
+                        <p className="text-gray-500">{sale.customer.phone}</p>
                       )}
                     </td>
                     <td>
-                      <p className="text-xs text-gray-900">{sale.items?.length || 0} items</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-gray-900">{sale.items?.length || 0} items</p>
+                      <p className="text-gray-500">
                         {sale.items?.reduce((sum: any, item: any) => sum + item.quantity, 0) || 0} units
                       </p>
                     </td>
                     <td>
-                      <p className="font-semibold text-xs text-gray-900">
+                      <p className="font-semibold text-gray-900">
                         {formatCurrency(Number(sale.totalAmount))}
                       </p>
                       {Number(sale.discountAmount) > 0 && (
-                        <p className="text-xs text-red-600">
+                        <p className="text-red-600">
                           -{formatCurrency(Number(sale.discountAmount))} disc
                         </p>
                       )}
                     </td>
                     <td>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-gray-500">
                         {paymentMethodNames[sale.paymentMethod]}
                       </span>
                     </td>
@@ -180,7 +180,7 @@ export default async function SalesPage({
                       )}
                     </td>
                     <td>
-                      <p className="font-mono text-xs font-medium text-gray-900">
+                      <p className="font-mono font-medium text-gray-900">
                         {sale.invoiceNumber}
                       </p>
                     </td>
