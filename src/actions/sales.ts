@@ -146,76 +146,80 @@ export async function createSale(data: z.infer<typeof createSaleSchema>) {
 
   const { items, customerId, customerName, customerPhone, customerAddress, paymentMethod, discountAmount, notes } = validated.data;
 
+  // Calculate totals (pure computation — safe to do outside the transaction)
+  let subtotal = 0;
+  const saleItems = items.map((item) => {
+    const discountAmt = (item.unitPrice * item.quantity * item.discountPercent) / 100;
+    const totalPrice = item.unitPrice * item.quantity - discountAmt;
+    subtotal += totalPrice;
+
+    return {
+      variantId: item.variantId,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      discountPercent: item.discountPercent,
+      discountAmount: discountAmt,
+      totalPrice,
+    };
+  });
+
+  const totalAmount = subtotal - discountAmount;
+
   try {
-    // Check stock availability
-    for (const item of items) {
-      const variant = serializeData(await prisma.productVariant.findUnique({
-        where: { id: item.variantId },
-      }));
-
-      if (!variant) {
-        return { error: `Product variant not found` };
-      }
-
-      if (variant.currentStock < item.quantity) {
-        return { error: `Insufficient stock for ${variant.sku}. Available: ${variant.currentStock}` };
-      }
-    }
-
-    // Get or create customer
-    let finalCustomerId = customerId;
-    if (!finalCustomerId) {
-      const customer = serializeData(await prisma.customer.create({
-        data: {
-          name: customerName,
-          phone: customerPhone,
-          address: customerAddress,
-        },
-      }));
-      finalCustomerId = customer.id;
-    }
-
-    // Get company profile for invoice prefix
-    const company = await prisma.companyProfile.findFirst();
-    const invoicePrefix = company?.invoicePrefix || 'INV';
-
-    // Get latest invoice number
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const latestSale = await prisma.sale.findFirst({
-      where: { date: { gte: today } },
-      orderBy: { invoiceNumber: 'desc' },
-    });
-
-    let counter = 1;
-    if (latestSale?.invoiceNumber) {
-      const parts = latestSale.invoiceNumber.split('-');
-      counter = parseInt(parts[parts.length - 1]) + 1;
-    }
-
-    const invoiceNumber = generateInvoiceNumber(invoicePrefix, counter);
-
-    // Calculate totals
-    let subtotal = 0;
-    const saleItems = items.map((item) => {
-      const discountAmt = (item.unitPrice * item.quantity * item.discountPercent) / 100;
-      const totalPrice = item.unitPrice * item.quantity - discountAmt;
-      subtotal += totalPrice;
-
-      return {
-        variantId: item.variantId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        discountPercent: item.discountPercent,
-        discountAmount: discountAmt,
-        totalPrice,
-      };
-    });
-
-    const totalAmount = subtotal - discountAmount;
-
-    // Create sale and update stock in transaction
+    // Run everything inside a single serializable transaction so that:
+    //  - Stock checks and decrements are atomic (fixes race condition #1)
+    //  - Invoice number generation and insert are atomic (fixes race condition #2)
+    //  - Customer creation is rolled back if anything fails (fixes orphan risk #3)
     const sale = serializeData(await prisma.$transaction(async (tx) => {
+      // --- Fix #1: Stock check inside the transaction ---
+      for (const item of items) {
+        const variant = await tx.productVariant.findUnique({
+          where: { id: item.variantId },
+        });
+
+        if (!variant) {
+          throw new Error(`Product variant not found`);
+        }
+
+        if (variant.currentStock < item.quantity) {
+          throw new Error(
+            `Insufficient stock for ${variant.sku}. Available: ${variant.currentStock}`
+          );
+        }
+      }
+
+      // --- Fix #3: Customer creation inside the transaction ---
+      let finalCustomerId = customerId;
+      if (!finalCustomerId) {
+        const customer = await tx.customer.create({
+          data: {
+            name: customerName,
+            phone: customerPhone,
+            address: customerAddress,
+          },
+        });
+        finalCustomerId = customer.id;
+      }
+
+      // --- Fix #2: Invoice number generation inside the transaction ---
+      const company = await tx.companyProfile.findFirst();
+      const invoicePrefix = company?.invoicePrefix || 'INV';
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const latestSale = await tx.sale.findFirst({
+        where: { date: { gte: today } },
+        orderBy: { invoiceNumber: 'desc' },
+      });
+
+      let counter = 1;
+      if (latestSale?.invoiceNumber) {
+        const parts = latestSale.invoiceNumber.split('-');
+        counter = parseInt(parts[parts.length - 1]) + 1;
+      }
+
+      const invoiceNumber = generateInvoiceNumber(invoicePrefix, counter);
+
       // Create sale
       const newSale = await tx.sale.create({
         data: {
@@ -274,6 +278,8 @@ export async function createSale(data: z.infer<typeof createSaleSchema>) {
       });
 
       return newSale;
+    }, {
+      isolationLevel: 'Serializable',
     }));
 
     revalidatePath('/dashboard/sales');
@@ -282,6 +288,13 @@ export async function createSale(data: z.infer<typeof createSaleSchema>) {
     return { success: true, sale };
   } catch (error) {
     console.error('Create sale error:', error);
+    // Re-surface known business errors thrown from inside the transaction
+    if (error instanceof Error) {
+      const knownErrors = ['Product variant not found', 'Insufficient stock'];
+      if (knownErrors.some((msg) => error.message.startsWith(msg))) {
+        return { error: error.message };
+      }
+    }
     return { error: 'Failed to create sale' };
   }
 }

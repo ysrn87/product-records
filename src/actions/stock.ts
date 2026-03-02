@@ -129,28 +129,28 @@ export async function createStockEntry(data: z.infer<typeof createStockEntrySche
   const { items, notes } = validated.data;
 
   try {
-    // Get company profile for entry prefix
-    const company = await prisma.companyProfile.findFirst();
-    const entryPrefix = company?.stockEntryPrefix || 'SE';
+    // Run everything inside a single serializable transaction so that:
+    //  - Entry number generation and insert are atomic (fixes race condition)
+    const entry = serializeData(await prisma.$transaction(async (tx) => {
+      // --- Fix: Entry number generation inside the transaction ---
+      const company = await tx.companyProfile.findFirst();
+      const entryPrefix = company?.stockEntryPrefix || 'SE';
 
-    // Get latest entry number
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const latestEntry = await prisma.stockEntry.findFirst({
-      where: { date: { gte: today } },
-      orderBy: { entryNumber: 'desc' },
-    });
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const latestEntry = await tx.stockEntry.findFirst({
+        where: { date: { gte: today } },
+        orderBy: { entryNumber: 'desc' },
+      });
 
-    let counter = 1;
-    if (latestEntry?.entryNumber) {
-      const parts = latestEntry.entryNumber.split('-');
-      counter = parseInt(parts[parts.length - 1]) + 1;
-    }
+      let counter = 1;
+      if (latestEntry?.entryNumber) {
+        const parts = latestEntry.entryNumber.split('-');
+        counter = parseInt(parts[parts.length - 1]) + 1;
+      }
 
-    const entryNumber = generateStockEntryNumber(entryPrefix, counter);
+      const entryNumber = generateStockEntryNumber(entryPrefix, counter);
 
-    // Create stock entry and update stock in transaction
-    const entry = serializeData(await prisma.$transaction(async (tx: any) => {
       // Create stock entry
       const newEntry = await tx.stockEntry.create({
         data: {
@@ -208,6 +208,8 @@ export async function createStockEntry(data: z.infer<typeof createStockEntrySche
       });
 
       return newEntry;
+    }, {
+      isolationLevel: 'Serializable',
     }));
 
     revalidatePath('/dashboard/stock-in');
@@ -257,7 +259,7 @@ export async function cancelStockEntry(id: string, reason: string) {
     }
 
     // Cancel entry and reverse stock
-    await prisma.$transaction(async (tx: any) => {
+    await prisma.$transaction(async (tx) => {
       // Update entry status
       await tx.stockEntry.update({
         where: { id },
