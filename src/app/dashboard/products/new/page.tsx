@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 interface Category {
   id: string;
   name: string;
-}
+} 
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function NewProductPage() {
     const formData = new FormData(e.currentTarget);
     const result = await createProduct(formData);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
       setIsLoading(false);
     } else {
@@ -56,7 +56,7 @@ export default function NewProductPage() {
     formData.set('description', newCategoryDesc);
 
     const result = await createCategory(formData);
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Category created');
