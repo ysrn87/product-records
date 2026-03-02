@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { checkAuth } from '@/lib/utils';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 
 // Schemas
 const customerSchema = z.object({
@@ -27,7 +28,7 @@ export async function getCustomers(filters?: { search?: string; page?: number })
   const search = filters?.search;
 
   // Build where clause
-  let whereClause: any = {};
+  let whereClause: Prisma.CustomerWhereInput = {};
 
   // For SALES role, only show customers they have sold to
   if (session!.user!.role === 'SALES') {
@@ -141,19 +142,6 @@ export async function getCustomer(id: string) {
     },
   });
 
-  // For SALES role, check if they have any sales with this customer
-  if (session!.user!.role === 'SALES' && customer) {
-    const hasSales = await prisma.sale.count({
-      where: {
-        customerId: id,
-        salespersonId: session!.user!.id,
-      },
-    });
-    
-    // If no sales with this customer, still allow viewing but show limited info
-    // This allows SALES to search and find customers, but see only their own transactions
-  }
-
   return customer;
 }
 
@@ -239,7 +227,7 @@ export async function searchCustomers(query: string) {
   
   if (!query || query.length < 2) return [];
 
-  let whereClause: any = {
+  let whereClause: Prisma.CustomerWhereInput = {
     OR: [
       { name: { contains: query, mode: 'insensitive' } },
       { phone: { contains: query, mode: 'insensitive' } },

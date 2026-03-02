@@ -14,7 +14,7 @@ export default async function DashboardLayout({
   const session = await auth();
 
   // Check for valid session with user data
-  if (!session?.user?.id || (session as any)?.error === 'UserInvalidated') {
+  if (!session?.user?.id || session?.error === 'UserInvalidated') {
     redirect('/login?error=SessionExpired');
   }
 

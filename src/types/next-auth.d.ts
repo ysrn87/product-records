@@ -17,6 +17,9 @@ declare module 'next-auth' {
       name: string;
       role: UserRole;
     };
+    // Set when a session is invalidated (user deactivated or role changed).
+    // The middleware reads this to force a logout redirect.
+    error?: 'UserInvalidated';
   }
 }
 
@@ -24,5 +27,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
     role: UserRole;
+    validatedAt?: number;
+    invalidated?: boolean;
   }
 }

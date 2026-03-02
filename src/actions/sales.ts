@@ -170,16 +170,20 @@ export async function createSale(data: z.infer<typeof createSaleSchema>) {
     //  - Invoice number generation and insert are atomic (fixes race condition #2)
     //  - Customer creation is rolled back if anything fails (fixes orphan risk #3)
     const sale = serializeData(await prisma.$transaction(async (tx) => {
-      // --- Fix #1: Stock check inside the transaction ---
-      for (const item of items) {
-        const variant = await tx.productVariant.findUnique({
-          where: { id: item.variantId },
-        });
+      // --- Fix #1: Stock check inside the transaction — single query instead of N+1 ---
+      const variantIds = items.map((item) => item.variantId);
+      const variants = await tx.productVariant.findMany({
+        where: { id: { in: variantIds } },
+      });
 
+      // Build a lookup map for O(1) access per item
+      const variantMap = new Map(variants.map((v) => [v.id, v]));
+
+      for (const item of items) {
+        const variant = variantMap.get(item.variantId);
         if (!variant) {
           throw new Error(`Product variant not found`);
         }
-
         if (variant.currentStock < item.quantity) {
           throw new Error(
             `Insufficient stock for ${variant.sku}. Available: ${variant.currentStock}`

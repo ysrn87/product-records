@@ -139,6 +139,7 @@ model ProductVariant {
   @@index([productId])
   @@index([isActive])
   @@index([currentStock])
+  @@index([isActive, currentStock]) // composite for getAvailableVariants filter
   @@map("product_variants")
 }
 
