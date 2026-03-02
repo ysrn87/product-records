@@ -32,7 +32,7 @@ export default function AddVariantTypeForm({ productId }: AddVariantTypeFormProp
     newOptions[index] = value;
     setOptions(newOptions);
   };
-
+ 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -45,7 +45,7 @@ export default function AddVariantTypeForm({ productId }: AddVariantTypeFormProp
     setIsLoading(true);
     const result = await addVariantType(productId, typeName.trim(), filteredOptions);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Variant type added successfully');

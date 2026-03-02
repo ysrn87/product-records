@@ -8,7 +8,7 @@ import { createCustomer } from '@/actions/customers';
 import toast from 'react-hot-toast';
 
 export default function NewCustomerPage() {
-  const router = useRouter();
+  const router = useRouter(); 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -18,7 +18,7 @@ export default function NewCustomerPage() {
     const formData = new FormData(e.currentTarget);
     const result = await createCustomer(formData);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
       setIsLoading(false);
     } else {

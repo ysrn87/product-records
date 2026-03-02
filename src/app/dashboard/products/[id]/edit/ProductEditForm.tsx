@@ -34,7 +34,7 @@ export default function ProductEditForm({ product, categories }: ProductEditForm
     const formData = new FormData(e.currentTarget);
     const result = await updateProduct(product.id, formData);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Product updated successfully');
@@ -48,7 +48,7 @@ export default function ProductEditForm({ product, categories }: ProductEditForm
     setIsToggling(true);
     const result = await toggleProductStatus(product.id);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success(`Product ${product.isActive ? 'deactivated' : 'activated'}`);
@@ -125,7 +125,7 @@ export default function ProductEditForm({ product, categories }: ProductEditForm
             <div className="flex items-center justify-end gap-3 pt-4 border-t">
               <Link href={`/dashboard/products/`} className="btn-secondary">
                 Cancel
-              </Link>
+              </Link> 
               <button type="submit" disabled={isLoading} className="btn-primary">
                 {isLoading ? (
                   <>

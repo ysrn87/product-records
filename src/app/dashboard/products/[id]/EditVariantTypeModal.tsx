@@ -16,7 +16,7 @@ interface VariantType {
   id: string;
   name: string;
   options: { id: string; value: string }[];
-}
+} 
 
 interface EditVariantTypeModalProps {
   variantType: VariantType;
@@ -38,7 +38,7 @@ export default function EditVariantTypeModal({ variantType }: EditVariantTypeMod
     setIsLoading(true);
     const result = await updateVariantType(variantType.id, typeName.trim());
     
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Variant type updated');
@@ -53,7 +53,7 @@ export default function EditVariantTypeModal({ variantType }: EditVariantTypeMod
     setIsLoading(true);
     const result = await addVariantOption(variantType.id, newOption.trim());
     
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Option added');
@@ -69,7 +69,7 @@ export default function EditVariantTypeModal({ variantType }: EditVariantTypeMod
     setIsLoading(true);
     const result = await updateVariantOption(optionId, editingOptionValue.trim());
     
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Option updated');
@@ -83,7 +83,7 @@ export default function EditVariantTypeModal({ variantType }: EditVariantTypeMod
     setDeletingId(optionId);
     const result = await deleteVariantOption(optionId);
     
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Option deleted');
@@ -98,7 +98,7 @@ export default function EditVariantTypeModal({ variantType }: EditVariantTypeMod
     setIsLoading(true);
     const result = await deleteVariantType(variantType.id);
     
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Variant type deleted');

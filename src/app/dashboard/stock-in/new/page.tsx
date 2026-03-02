@@ -151,7 +151,7 @@ export default function NewStockEntryPage() {
       })),
     });
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
       setIsLoading(false);
     } else {
@@ -323,7 +323,7 @@ export default function NewStockEntryPage() {
               <h2 className="font-semibold text-gray-900">Entry Summary</h2>
             </div>
             <div className="card-body space-y-4">
-              {/* Notes */}
+              {/* Notes */} 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Notes

@@ -15,7 +15,7 @@ interface Category {
 
 interface CategoryManagerProps {
   categories: Category[];
-}
+} 
 
 export default function CategoryManager({ categories }: CategoryManagerProps) {
   const router = useRouter();
@@ -31,7 +31,7 @@ export default function CategoryManager({ categories }: CategoryManagerProps) {
     const formData = new FormData(e.currentTarget);
     const result = await createCategory(formData);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Category created successfully');
@@ -47,7 +47,7 @@ export default function CategoryManager({ categories }: CategoryManagerProps) {
     setDeletingId(id);
     const result = await deleteCategory(id);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Category deleted successfully');

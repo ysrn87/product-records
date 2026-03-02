@@ -19,7 +19,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
     setIsLoading(true);
     try {
       const result = await toggleProductStatus(product.id);
-      if (result.error) {
+      if ('error' in result) { 
         toast.error(result.error);
       } else {
         toast.success(product.isActive ? 'Product deactivated' : 'Product activated');

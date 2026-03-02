@@ -51,7 +51,7 @@ export default function EditVariantModal({ variant }: EditVariantModalProps) {
       minStockLevel: parseInt(formData.minStockLevel),
     });
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Variant updated successfully');
@@ -186,7 +186,7 @@ export default function EditVariantModal({ variant }: EditVariantModalProps) {
                     <>
                       <Save className="w-4 h-4" />
                       Save Changes
-                    </>
+                    </> 
                   )}
                 </button>
               </div>

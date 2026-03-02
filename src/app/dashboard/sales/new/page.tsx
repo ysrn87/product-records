@@ -211,7 +211,7 @@ export default function NewSalePage() {
 
     const result = await createSale(saleData);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
       setIsLoading(false);
     } else {
@@ -531,7 +531,7 @@ export default function NewSalePage() {
                   <option value="EWALLET">E-Wallet</option>
                   <option value="OTHER">Other</option>
                 </select>
-              </div>
+              </div> 
 
               {/* Additional Discount */}
               <div>

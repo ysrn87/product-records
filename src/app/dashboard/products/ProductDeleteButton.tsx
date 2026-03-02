@@ -17,10 +17,10 @@ export default function ProductDeleteButton({ productId, productName }: ProductD
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleDelete = async () => {
-    setIsDeleting(true);
+    setIsDeleting(true); 
     const result = await deleteProduct(productId);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
       setIsDeleting(false);
       setShowConfirm(false);

@@ -54,7 +54,7 @@ export default function VariantForm({ productId, variantTypes }: VariantFormProp
       variantOptions: optionIds,
     });
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Variant created successfully');
@@ -212,7 +212,7 @@ export default function VariantForm({ productId, variantTypes }: VariantFormProp
                   Creating...
                 </>
               ) : (
-                <>
+                <> 
                   <Plus className="w-4 h-4" />
                   Create Variant
                 </>

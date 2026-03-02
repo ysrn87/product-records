@@ -15,9 +15,9 @@ export default function SaleCancelButton({ saleId }: { saleId: string }) {
     setIsLoading(true);
     const result = await cancelSale(saleId, 'Cancelled by admin');
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
-      setIsLoading(false);
+      setIsLoading(false); 
     } else { 
       toast.success('Sale cancelled and stock restored');
       router.refresh();

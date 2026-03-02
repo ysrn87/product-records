@@ -154,7 +154,7 @@ export default function NewStockEntryModal({ isOpen, onClose, isWarehouse = fals
       })),
     });
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
       setIsLoading(false);
     } else {
@@ -381,4 +381,4 @@ export default function NewStockEntryModal({ isOpen, onClose, isWarehouse = fals
       </div>
     </Modal>
   );
-}
+} 

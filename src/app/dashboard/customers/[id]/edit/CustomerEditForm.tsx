@@ -41,8 +41,8 @@ export default function CustomerEditForm({ customer }: CustomerEditFormProps) {
 
     const result = await updateCustomer(customer.id, data);
 
-    if (result.error) {
-      toast.error(result.error);
+    if ('error' in result) {
+      toast.error(result.error); 
     } else {
       toast.success('Customer updated successfully');
       router.push(`/dashboard/customers/${customer.id}`);

@@ -10,7 +10,7 @@ interface StockEntryActionsProps {
     id: string;
     status: string;
   };
-}
+} 
 
 export default function StockEntryActions({ entry }: StockEntryActionsProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +26,7 @@ export default function StockEntryActions({ entry }: StockEntryActionsProps) {
     setIsLoading(true);
     try {
       const result = await cancelStockEntry(entry.id, cancelReason);
-      if (result.error) {
+      if ('error' in result) {
         toast.error(result.error);
       } else {
         toast.success('Stock entry cancelled and stock reverted');

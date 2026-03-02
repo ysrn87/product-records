@@ -15,9 +15,9 @@ export default function StockEntryCancelButton({ entryId }: { entryId: string })
     setIsLoading(true);
     const result = await cancelStockEntry(entryId, 'Cancelle by Admin');
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
-      setIsLoading(false);
+      setIsLoading(false); 
     } else {
       toast.success('Stock entry cancelled and stock reversed');
       router.refresh();

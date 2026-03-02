@@ -16,13 +16,13 @@ export default function VariantActions({ variantId, sku, isActive }: VariantActi
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false); 
 
   const handleDelete = async () => {
     setIsDeleting(true);
     const result = await deleteVariant(variantId);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Variant deleted successfully');
@@ -36,7 +36,7 @@ export default function VariantActions({ variantId, sku, isActive }: VariantActi
     setIsToggling(true);
     const result = await toggleVariantStatus(variantId);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success(`Variant ${isActive ? 'deactivated' : 'activated'}`);
