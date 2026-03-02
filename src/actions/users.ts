@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { checkAuth } from '@/lib/utils';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { UserRole, UserStatus } from '@prisma/client';
@@ -92,7 +93,7 @@ export async function createUser(data: z.infer<typeof createUserSchema>) {
 
   const validated = createUserSchema.safeParse(data);
   if (!validated.success) {
-    return { error: validated.error.errors[0].message };
+    return { error: validated.error.errors.map((e) => e.message).join(', ') };
   }
 
   try {
@@ -147,7 +148,7 @@ export async function updateUser(id: string, data: z.infer<typeof updateUserSche
 
   const validated = updateUserSchema.safeParse(data);
   if (!validated.success) {
-    return { error: validated.error.errors[0].message };
+    return { error: validated.error.errors.map((e) => e.message).join(', ') };
   }
 
   try {

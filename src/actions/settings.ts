@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { checkAuth } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
 
 export async function getCompanyProfile() {
@@ -36,9 +37,9 @@ export async function updateCompanyProfile(data: {
 }) {
   const session = await auth();
   
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
   
   try {
     let profile = await prisma.companyProfile.findFirst();
@@ -73,7 +74,7 @@ export async function updateCompanyProfile(data: {
     // Log activity
     await prisma.activityLog.create({
       data: {
-        userId: session.user.id,
+        userId: currentUser.id,
         action: 'UPDATE',
         entityType: 'COMPANY_PROFILE',
         entityId: profile.id,

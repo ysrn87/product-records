@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { checkAuth } from '@/lib/utils';
 import { z } from 'zod';
 
 // Schemas
@@ -29,11 +30,11 @@ export async function getCustomers(filters?: { search?: string; page?: number })
   let whereClause: any = {};
 
   // For SALES role, only show customers they have sold to
-  if (session.user.role === 'SALES') {
+  if (session!.user!.role === 'SALES') {
     whereClause = {
       sales: {
         some: {
-          salespersonId: session.user.id,
+          salespersonId: session!.user!.id,
         },
       },
     };
@@ -63,8 +64,8 @@ export async function getCustomers(filters?: { search?: string; page?: number })
       where: finalWhere,
       include: {
         sales: {
-          where: session.user.role === 'SALES' 
-            ? { status: 'COMPLETED', salespersonId: session.user.id }
+          where: session!.user!.role === 'SALES' 
+            ? { status: 'COMPLETED', salespersonId: session!.user!.id }
             : { status: 'COMPLETED' },
           select: {
             id: true,
@@ -77,8 +78,8 @@ export async function getCustomers(filters?: { search?: string; page?: number })
         },
         _count: {
           select: { 
-            sales: session.user.role === 'SALES'
-              ? { where: { salespersonId: session.user.id } }
+            sales: session!.user!.role === 'SALES'
+              ? { where: { salespersonId: session!.user!.id } }
               : true,
           },
         },
@@ -110,8 +111,8 @@ export async function getCustomer(id: string) {
     where: { id },
     include: {
       sales: {
-        where: session.user.role === 'SALES' 
-          ? { salespersonId: session.user.id }
+        where: session!.user!.role === 'SALES' 
+          ? { salespersonId: session!.user!.id }
           : undefined,
         include: {
           salesperson: {
@@ -132,8 +133,8 @@ export async function getCustomer(id: string) {
       },
       _count: {
         select: { 
-          sales: session.user.role === 'SALES'
-            ? { where: { salespersonId: session.user.id } }
+          sales: session!.user!.role === 'SALES'
+            ? { where: { salespersonId: session!.user!.id } }
             : true,
         },
       },
@@ -141,11 +142,11 @@ export async function getCustomer(id: string) {
   });
 
   // For SALES role, check if they have any sales with this customer
-  if (session.user.role === 'SALES' && customer) {
+  if (session!.user!.role === 'SALES' && customer) {
     const hasSales = await prisma.sale.count({
       where: {
         customerId: id,
-        salespersonId: session.user.id,
+        salespersonId: session!.user!.id,
       },
     });
     
@@ -159,9 +160,9 @@ export async function getCustomer(id: string) {
 // Create customer
 export async function createCustomer(formData: FormData) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN', 'SALES'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN', 'SALES');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   const data = {
     name: formData.get('name') as string,
@@ -172,7 +173,7 @@ export async function createCustomer(formData: FormData) {
 
   const validated = customerSchema.safeParse(data);
   if (!validated.success) {
-    return { error: validated.error.errors[0].message };
+    return { error: validated.error.errors.map((e) => e.message).join(', ') };
   }
 
   try {
@@ -196,9 +197,9 @@ export async function createCustomer(formData: FormData) {
 // Update customer
 export async function updateCustomer(id: string, formData: FormData) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN', 'SALES'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN', 'SALES');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   const data = {
     name: formData.get('name') as string,
@@ -209,7 +210,7 @@ export async function updateCustomer(id: string, formData: FormData) {
 
   const validated = customerSchema.safeParse(data);
   if (!validated.success) {
-    return { error: validated.error.errors[0].message };
+    return { error: validated.error.errors.map((e) => e.message).join(', ') };
   }
 
   try {
@@ -255,8 +256,8 @@ export async function searchCustomers(query: string) {
     include: {
       _count: {
         select: {
-          sales: session.user.role === 'SALES'
-            ? { where: { salespersonId: session.user.id } }
+          sales: session!.user!.role === 'SALES'
+            ? { where: { salespersonId: session!.user!.id } }
             : true,
         },
       },
@@ -271,8 +272,8 @@ export async function getCustomerStats(id: string) {
   const session = await auth();
   if (!session?.user) return { totalPurchases: 0, totalSpent: 0 };
 
-  const whereClause = session.user.role === 'SALES'
-    ? { customerId: id, status: 'COMPLETED' as const, salespersonId: session.user.id }
+  const whereClause = session!.user!.role === 'SALES'
+    ? { customerId: id, status: 'COMPLETED' as const, salespersonId: session!.user!.id }
     : { customerId: id, status: 'COMPLETED' as const };
 
   const stats = await prisma.sale.aggregate({

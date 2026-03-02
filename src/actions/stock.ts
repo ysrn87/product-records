@@ -4,8 +4,8 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { z } from 'zod';
-import { generateStockEntryNumber } from '@/lib/utils';
-import { serializeData } from '@/lib/utils';
+import { generateDocumentNumber } from '@/lib/utils';
+import { serializeData, checkAuth } from '@/lib/utils';
 
 // Pagination config
 const PAGE_SIZE = 10;
@@ -86,7 +86,7 @@ export async function getStockEntries(filters?: {
 
 // Get single stock entry
 export async function getStockEntry(id: string) {
-  const entry = await prisma.stockEntry.findUnique({
+  const entry = serializeData(await prisma.stockEntry.findUnique({
     where: { id },
     include: {
       recordedBy: true,
@@ -109,7 +109,7 @@ export async function getStockEntry(id: string) {
         },
       },
     },
-  });
+  }));
 
   return entry;
 }
@@ -117,13 +117,13 @@ export async function getStockEntry(id: string) {
 // Create stock entry
 export async function createStockEntry(data: z.infer<typeof createStockEntrySchema>) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN', 'WAREHOUSE'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN', 'WAREHOUSE');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   const validated = createStockEntrySchema.safeParse(data);
   if (!validated.success) {
-    return { error: validated.error.errors[0].message };
+    return { error: validated.error.errors.map((e) => e.message).join(', ') };
   }
 
   const { items, notes } = validated.data;
@@ -149,14 +149,14 @@ export async function createStockEntry(data: z.infer<typeof createStockEntrySche
         counter = parseInt(parts[parts.length - 1]) + 1;
       }
 
-      const entryNumber = generateStockEntryNumber(entryPrefix, counter);
+      const entryNumber = generateDocumentNumber(entryPrefix, counter);
 
       // Create stock entry
       const newEntry = await tx.stockEntry.create({
         data: {
           entryNumber,
           notes,
-          recordedById: session.user.id,
+          recordedById: currentUser.id,
           items: {
             create: items.map((item) => ({
               variantId: item.variantId,
@@ -195,7 +195,7 @@ export async function createStockEntry(data: z.infer<typeof createStockEntrySche
       // Log activity
       await tx.activityLog.create({
         data: {
-          userId: session.user.id,
+          userId: currentUser.id,
           action: 'CREATE_STOCK_ENTRY',
           entityType: 'StockEntry',
           entityId: newEntry.id,
@@ -225,9 +225,9 @@ export async function createStockEntry(data: z.infer<typeof createStockEntrySche
 // Cancel stock entry
 export async function cancelStockEntry(id: string, reason: string) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN', 'WAREHOUSE'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN', 'WAREHOUSE');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   if (!reason.trim()) {
     return { error: 'Cancel reason is required' };
@@ -285,7 +285,7 @@ export async function cancelStockEntry(id: string, reason: string) {
       // Log activity
       await tx.activityLog.create({
         data: {
-          userId: session.user.id,
+          userId: currentUser.id,
           action: 'CANCEL_STOCK_ENTRY',
           entityType: 'StockEntry',
           entityId: id,

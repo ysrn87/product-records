@@ -52,8 +52,9 @@ export function formatDateTime(date: Date | string | null | undefined): string {
   }).format(d);
 }
 
-// Generate invoice number
-export function generateInvoiceNumber(prefix: string, counter: number): string {
+// Generate a sequential document number (invoices, stock entries, etc.)
+// Format: {PREFIX}-{YYMMDD}-{0001}
+export function generateDocumentNumber(prefix: string, counter: number): string {
   const date = new Date();
   const year = date.getFullYear().toString().slice(-2);
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -62,15 +63,9 @@ export function generateInvoiceNumber(prefix: string, counter: number): string {
   return `${prefix}-${year}${month}${day}-${num}`;
 }
 
-// Generate stock entry number
-export function generateStockEntryNumber(prefix: string, counter: number): string {
-  const date = new Date();
-  const year = date.getFullYear().toString().slice(-2);
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  const num = counter.toString().padStart(4, '0');
-  return `${prefix}-${year}${month}${day}-${num}`;
-}
+// Kept for backward compatibility — both delegate to generateDocumentNumber
+export const generateInvoiceNumber = generateDocumentNumber;
+export const generateStockEntryNumber = generateDocumentNumber;
 
 // Calculate percentage change
 export function calculatePercentageChange(current: number, previous: number): number {
@@ -154,4 +149,17 @@ export function serializeData<T>(data: T): T {
         : value
     )
   );
+}
+
+// Authorization helper — returns an error object if the session user does not
+// have one of the required roles, or null if the check passes.
+// Usage: const authError = checkAuth(session, 'ADMIN', 'PRIVILEGE');
+//        if (authError) return authError;
+export function checkAuth(
+  session: { user?: { role: string } | null } | null,
+  ...roles: string[]
+): { error: string } | null {
+  if (!session?.user) return { error: 'Unauthorized' };
+  if (roles.length > 0 && !roles.includes(session.user.role)) return { error: 'Unauthorized' };
+  return null;
 }

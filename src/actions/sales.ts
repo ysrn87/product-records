@@ -4,9 +4,8 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { z } from 'zod';
-import { generateInvoiceNumber } from '@/lib/utils';
 import { PaymentMethod } from '@prisma/client';
-import { serializeData } from '@/lib/utils';
+import { generateDocumentNumber, serializeData, checkAuth } from '@/lib/utils';
 
 // Schemas
 const saleItemSchema = z.object({
@@ -135,13 +134,13 @@ export async function getSale(id: string) {
 // Create sale
 export async function createSale(data: z.infer<typeof createSaleSchema>) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN', 'SALES'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN', 'SALES');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   const validated = createSaleSchema.safeParse(data);
   if (!validated.success) {
-    return { error: validated.error.errors[0].message };
+    return { error: validated.error.errors.map((e) => e.message).join(', ') };
   }
 
   const { items, customerId, customerName, customerPhone, customerAddress, paymentMethod, discountAmount, notes } = validated.data;
@@ -218,14 +217,14 @@ export async function createSale(data: z.infer<typeof createSaleSchema>) {
         counter = parseInt(parts[parts.length - 1]) + 1;
       }
 
-      const invoiceNumber = generateInvoiceNumber(invoicePrefix, counter);
+      const invoiceNumber = generateDocumentNumber(invoicePrefix, counter);
 
       // Create sale
       const newSale = await tx.sale.create({
         data: {
           invoiceNumber,
           customerId: finalCustomerId!,
-          salespersonId: session.user.id,
+          salespersonId: currentUser.id,
           subtotal,
           discountAmount,
           totalAmount,
@@ -265,7 +264,7 @@ export async function createSale(data: z.infer<typeof createSaleSchema>) {
       // Log activity
       await tx.activityLog.create({
         data: {
-          userId: session.user.id,
+          userId: currentUser.id,
           action: 'CREATE_SALE',
           entityType: 'Sale',
           entityId: newSale.id,
@@ -302,9 +301,9 @@ export async function createSale(data: z.infer<typeof createSaleSchema>) {
 // Cancel sale
 export async function cancelSale(id: string, reason: string) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   if (!reason.trim()) {
     return { error: 'Cancel reason is required' };
@@ -333,7 +332,7 @@ export async function cancelSale(id: string, reason: string) {
           status: 'CANCELLED',
           cancelReason: reason,
           cancelledAt: new Date(),
-          approvedBy: session.user.id,
+          approvedBy: currentUser.id,
         },
       });
 
@@ -352,7 +351,7 @@ export async function cancelSale(id: string, reason: string) {
       // Log activity
       await tx.activityLog.create({
         data: {
-          userId: session.user.id,
+          userId: currentUser.id,
           action: 'CANCEL_SALE',
           entityType: 'Sale',
           entityId: id,

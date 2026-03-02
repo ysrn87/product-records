@@ -59,48 +59,57 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     async jwt({ token, user }) {
-      // Initial sign in - set user data
+      // Initial sign in — populate token from the user object
       if (user) {
         token.id = user.id;
         token.role = user.role as UserRole;
         token.email = user.email;
         token.name = user.name;
         token.validatedAt = Date.now();
+        return token;
       }
-      return token;
-    },
-    
-    async session({ session, token }) {
-      // Only validate user from DB every 30 minutes
+
+      // Subsequent requests — re-validate against DB every 30 minutes.
+      // This is the correct place for token mutations: the jwt callback
+      // return value is written back to the cookie, so role updates here
+      // actually persist. Mutations made in the session callback do not.
       const lastValidated = (token.validatedAt as number) || 0;
       const thirtyMinutes = 30 * 60 * 1000;
-      const shouldValidate = Date.now() - lastValidated > thirtyMinutes;
-      
+      const shouldValidate = !!token.id && Date.now() - lastValidated > thirtyMinutes;
+
       if (shouldValidate) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
             select: { id: true, status: true, role: true },
           });
-          
+
           if (!dbUser || dbUser.status !== UserStatus.ACTIVE) {
-            return {
-              ...session,
-              user: null,
-              error: 'UserInvalidated',
-            } as any;
-          }
-          
-          // Update token if role changed
-          if (dbUser.role !== token.role) {
+            // Mark the token as invalidated; the session callback will
+            // read this flag and force a logout via the middleware.
+            token.invalidated = true;
+          } else {
+            // Role changes now persist because we're in the jwt callback
             token.role = dbUser.role;
+            token.validatedAt = Date.now();
           }
         } catch (error) {
-          console.error('Session validation error:', error);
+          console.error('JWT validation error:', error);
         }
       }
-      
-      // Always return user data from token (validated or not)
+
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (token.invalidated) {
+        return {
+          ...session,
+          user: null,
+          error: 'UserInvalidated',
+        } as any;
+      }
+
       return {
         ...session,
         user: {

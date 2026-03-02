@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { z } from 'zod';
-import { serializeData } from '@/lib/utils';
+import { serializeData, checkAuth } from '@/lib/utils';
 
 // Schemas
 const productSchema = z.object({
@@ -122,9 +122,9 @@ export async function getProduct(id: string) {
 // Create product
 export async function createProduct(formData: FormData) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   const data = {
     name: formData.get('name') as string,
@@ -135,7 +135,7 @@ export async function createProduct(formData: FormData) {
 
   const validated = productSchema.safeParse(data);
   if (!validated.success) {
-    return { error: validated.error.errors[0].message };
+    return { error: validated.error.errors.map((e) => e.message).join(', ') };
   }
 
   try {
@@ -154,9 +154,9 @@ export async function createProduct(formData: FormData) {
 // Update product
 export async function updateProduct(id: string, formData: FormData) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   const data = {
     name: formData.get('name') as string,
@@ -167,7 +167,7 @@ export async function updateProduct(id: string, formData: FormData) {
 
   const validated = productSchema.safeParse(data);
   if (!validated.success) {
-    return { error: validated.error.errors[0].message };
+    return { error: validated.error.errors.map((e) => e.message).join(', ') };
   }
 
   try {
@@ -187,9 +187,9 @@ export async function updateProduct(id: string, formData: FormData) {
 // Toggle product status
 export async function toggleProductStatus(id: string) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     const product = serializeData(await prisma.product.findUnique({ where: { id } }));
@@ -213,13 +213,13 @@ export async function toggleProductStatus(id: string) {
 // Create product variant
 export async function createVariant(data: z.infer<typeof variantSchema>) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   const validated = variantSchema.safeParse(data);
   if (!validated.success) {
-    return { error: validated.error.errors[0].message };
+    return { error: validated.error.errors.map((e) => e.message).join(', ') };
   }
 
   try {
@@ -300,9 +300,9 @@ export async function getCategories() {
 // Create category
 export async function createCategory(formData: FormData) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   const data = {
     name: formData.get('name') as string,
@@ -311,7 +311,7 @@ export async function createCategory(formData: FormData) {
 
   const validated = categorySchema.safeParse(data);
   if (!validated.success) {
-    return { error: validated.error.errors[0].message };
+    return { error: validated.error.errors.map((e) => e.message).join(', ') };
   }
 
   try {
@@ -333,9 +333,9 @@ export async function createCategory(formData: FormData) {
 // Add variant type to product
 export async function addVariantType(productId: string, name: string, options: string[]) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     const variantType = await prisma.variantType.create({
@@ -365,9 +365,9 @@ export async function addVariantType(productId: string, name: string, options: s
 // Delete category
 export async function deleteCategory(id: string) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     // Check if category has products
@@ -394,9 +394,9 @@ export async function deleteCategory(id: string) {
 // Delete product
 export async function deleteProduct(id: string) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     // Check if product has any sales
@@ -441,9 +441,9 @@ export async function deleteProduct(id: string) {
 // Delete variant
 export async function deleteVariant(id: string) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     // Check if variant has any sales
@@ -488,9 +488,9 @@ export async function deleteVariant(id: string) {
 // Delete variant type
 export async function deleteVariantType(id: string) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     // Get variant type to check for associated variants
@@ -533,9 +533,9 @@ export async function updateVariantType(
   name: string
 ) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     // Check for duplicate name in same product
@@ -579,9 +579,9 @@ export async function addVariantOption(
   value: string
 ) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     // Check for duplicate option value
@@ -617,9 +617,9 @@ export async function updateVariantOption(
   value: string
 ) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     const option = await prisma.variantOption.findUnique({
@@ -660,9 +660,9 @@ export async function updateVariantOption(
 // Delete variant option
 export async function deleteVariantOption(id: string) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     // Check if option is used in any variant
@@ -697,9 +697,9 @@ export async function updateVariant(
   }
 ) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     // Check for duplicate SKU if changing
@@ -737,9 +737,9 @@ export async function updateVariant(
 // Toggle variant status
 export async function toggleVariantStatus(id: string) {
   const session = await auth();
-  if (!session?.user || !['PRIVILEGE', 'ADMIN'].includes(session.user.role)) {
-    return { error: 'Unauthorized' };
-  }
+  const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
+  if (authError) return authError;
+  const currentUser = session!.user!;
 
   try {
     const variant = serializeData(await prisma.productVariant.findUnique({
