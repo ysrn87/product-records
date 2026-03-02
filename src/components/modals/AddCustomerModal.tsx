@@ -23,7 +23,7 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
     const formData = new FormData(e.currentTarget);
     const result = await createCustomer(formData);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
       setIsLoading(false);
     } else {

@@ -43,7 +43,7 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
     const formData = new FormData(e.currentTarget);
     const result = await createProduct(formData);
 
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
       setIsLoading(false);
     } else {
@@ -65,7 +65,7 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
     formData.set('description', newCategoryDesc);
 
     const result = await createCategory(formData);
-    if (result.error) {
+    if ('error' in result) {
       toast.error(result.error);
     } else {
       toast.success('Category created');
