@@ -6,8 +6,6 @@ import {
   TrendingUp, 
   TrendingDown, 
   ShoppingCart, 
-  Package, 
-  Users,
   DollarSign,
   BarChart3
 } from 'lucide-react';
@@ -253,9 +251,7 @@ export default async function ReportsPage({
                 </span>
               </div>
             </div>
-            <div className="p-3 bg-blue-100 rounded-xl">
               <DollarSign className="w-6 h-6 text-blue-600" />
-            </div>
           </div>
         </div>
 
@@ -269,9 +265,7 @@ export default async function ReportsPage({
                 {profitMargin.toFixed(1)}% margin
               </p>
             </div>
-            <div className="p-3 bg-green-100 rounded-xl">
               <TrendingUp className="w-6 h-6 text-green-600" />
-            </div>
           </div>
         </div>
 
@@ -285,9 +279,7 @@ export default async function ReportsPage({
                 {formatCurrency(data.currentPeriod.revenue / (data.currentPeriod.transactions || 1))} avg
               </p>
             </div>
-            <div className="p-3 bg-purple-100 rounded-xl">
               <ShoppingCart className="w-6 h-6 text-purple-600" />
-            </div>
           </div>
         </div>
 
@@ -301,9 +293,7 @@ export default async function ReportsPage({
                 {((data.currentPeriod.discounts / (data.currentPeriod.revenue + data.currentPeriod.discounts)) * 100 || 0).toFixed(1)}% of sales
               </p>
             </div>
-            <div className="p-3 bg-orange-100 rounded-xl">
               <BarChart3 className="w-6 h-6 text-orange-600" />
-            </div>
           </div>
         </div>
       </div>

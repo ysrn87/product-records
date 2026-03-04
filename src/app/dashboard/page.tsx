@@ -223,6 +223,42 @@ export default async function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Monthly Sales / Stock Entries */}
+        {isWarehouse ? (
+          <div className="stat-card">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="stat-label">This Month's Entries</p>
+                <p className="stat-value">{formatNumber(stats.thisMonthStockEntries.count)}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {formatNumber(stats.thisMonthStockEntries.units)} units received
+                </p>
+              </div>
+                <TrendingUp className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        ) : (
+          <div className="stat-card">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="stat-label">{userRole === 'SALES' ? 'My This Month' : 'This Month'}</p>
+                <p className="stat-value">{formatCurrency(stats.thisMonthSales.amount)}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  {salesGrowth >= 0 ? (
+                    <ArrowUpRight className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <ArrowDownRight className="w-4 h-4 text-red-500" />
+                  )}
+                  <span className={salesGrowth >= 0 ? 'text-green-600 text-sm' : 'text-red-600 text-sm'}>
+                    {Math.abs(salesGrowth).toFixed(1)}% vs last month
+                  </span>
+                </div>
+              </div>
+                <TrendingUp className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        )}
+
         {/* Today's Sales / Stock Entries */}
         {isWarehouse ? (
           <div className="stat-card">
@@ -249,49 +285,7 @@ export default async function DashboardPage() {
                   {stats.todaySales.count} transactions
                 </p>
               </div>
-              <div className="p-3 bg-green-100 rounded-xl">
                 <ShoppingCart className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Monthly Sales / Stock Entries */}
-        {isWarehouse ? (
-          <div className="stat-card">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="stat-label">This Month's Entries</p>
-                <p className="stat-value">{formatNumber(stats.thisMonthStockEntries.count)}</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {formatNumber(stats.thisMonthStockEntries.units)} units received
-                </p>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="stat-card">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="stat-label">{userRole === 'SALES' ? 'My This Month' : 'This Month'}</p>
-                <p className="stat-value">{formatCurrency(stats.thisMonthSales.amount)}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  {salesGrowth >= 0 ? (
-                    <ArrowUpRight className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <ArrowDownRight className="w-4 h-4 text-red-500" />
-                  )}
-                  <span className={salesGrowth >= 0 ? 'text-green-600 text-sm' : 'text-red-600 text-sm'}>
-                    {Math.abs(salesGrowth).toFixed(1)}% vs last month
-                  </span>
-                </div>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
-              </div>
             </div>
           </div>
         )}
@@ -306,9 +300,7 @@ export default async function DashboardPage() {
                 {formatNumber(stats.totalVariants)} variants
               </p>
             </div>
-            <div className="p-3 bg-purple-100 rounded-xl">
               <Package className="w-6 h-6 text-purple-600" />
-            </div>
           </div>
         </div>
 
@@ -320,9 +312,7 @@ export default async function DashboardPage() {
               <p className="stat-value text-warning-600">{formatNumber(stats.lowStockItems)}</p>
               <p className="text-sm text-gray-500 mt-1">items need restock</p>
             </div>
-            <div className="p-3 bg-yellow-100 rounded-xl">
               <AlertTriangle className="w-6 h-6 text-yellow-600" />
-            </div>
           </div>
         </div>
       </div>
