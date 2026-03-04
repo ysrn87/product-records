@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 export default auth((req) => {
   const session = req.auth;
   const hasValidUser = session?.user?.id;
-  const hasError = (session as any)?.error === 'UserInvalidated';
+  const hasError = session?.error === 'UserInvalidated';
   const { pathname } = req.nextUrl;
 
   // If session has UserInvalidated error, force logout

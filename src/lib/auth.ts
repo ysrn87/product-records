@@ -37,6 +37,15 @@ function clearRateLimit(ip: string): void {
   loginAttempts.delete(ip);
 }
 
+// Periodically evict expired entries so the Map doesn't grow unboundedly
+// (failed-only IPs would otherwise never be removed).
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of loginAttempts.entries()) {
+    if (now > record.resetAt) loginAttempts.delete(ip);
+  }
+}, WINDOW_MS);
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({

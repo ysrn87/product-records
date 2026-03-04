@@ -4,8 +4,9 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { z } from 'zod';
-import { PaymentMethod } from '@prisma/client';
+import { PaymentMethod, Prisma } from '@prisma/client';
 import { generateDocumentNumber, serializeData, checkAuth } from '@/lib/utils';
+import { PAGE_SIZE } from '@/lib/constants';
 
 // Schemas
 const saleItemSchema = z.object({
@@ -26,9 +27,6 @@ const createSaleSchema = z.object({
   items: z.array(saleItemSchema).min(1, 'At least one item is required'),
 });
 
-// Pagination config
-const PAGE_SIZE = 10;
-
 // Get sales with filters and pagination
 export async function getSales(filters?: {
   startDate?: Date;
@@ -41,7 +39,7 @@ export async function getSales(filters?: {
   const page = filters?.page || 1;
   const skip = (page - 1) * PAGE_SIZE;
 
-  const where: Record<string, unknown> = {};
+  const where: Prisma.SaleWhereInput = {};
 
   if (filters?.startDate && filters?.endDate) {
     where.date = {
@@ -55,7 +53,7 @@ export async function getSales(filters?: {
   }
 
   if (filters?.status) {
-    where.status = filters.status;
+    where.status = filters.status as Prisma.EnumSaleStatusFilter['equals'];
   }
 
   if (filters?.search) {

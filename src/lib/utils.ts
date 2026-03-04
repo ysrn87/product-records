@@ -63,9 +63,9 @@ export function generateDocumentNumber(prefix: string, counter: number): string 
   return `${prefix}-${year}${month}${day}-${num}`;
 }
 
-// Kept for backward compatibility — both delegate to generateDocumentNumber
-export const generateInvoiceNumber = generateDocumentNumber;
-export const generateStockEntryNumber = generateDocumentNumber;
+// Convenience wrappers with built-in prefixes
+export const generateInvoiceNumber = (counter: number) => generateDocumentNumber('INV', counter);
+export const generateStockEntryNumber = (counter: number) => generateDocumentNumber('SE', counter);
 
 // Calculate percentage change
 export function calculatePercentageChange(current: number, previous: number): number {

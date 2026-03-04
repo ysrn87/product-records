@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { checkAuth } from '@/lib/utils';
+import { PAGE_SIZE } from '@/lib/constants';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 
@@ -14,9 +15,6 @@ const customerSchema = z.object({
   address: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
 });
-
-// Pagination config
-const PAGE_SIZE = 10;
 
 // Get customers - filtered by role with pagination
 export async function getCustomers(filters?: { search?: string; page?: number }) {
@@ -150,7 +148,6 @@ export async function createCustomer(formData: FormData) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN', 'SALES');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   const data = {
     name: formData.get('name') as string,
@@ -187,7 +184,6 @@ export async function updateCustomer(id: string, formData: FormData) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN', 'SALES');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   const data = {
     name: formData.get('name') as string,

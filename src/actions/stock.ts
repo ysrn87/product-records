@@ -4,11 +4,9 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { z } from 'zod';
-import { generateDocumentNumber } from '@/lib/utils';
-import { serializeData, checkAuth } from '@/lib/utils';
-
-// Pagination config
-const PAGE_SIZE = 10;
+import { generateDocumentNumber, serializeData, checkAuth } from '@/lib/utils';
+import { Prisma } from '@prisma/client';
+import { PAGE_SIZE } from '@/lib/constants';
 
 // Schemas
 const stockEntryItemSchema = z.object({
@@ -33,7 +31,7 @@ export async function getStockEntries(filters?: {
   const page = filters?.page || 1;
   const skip = (page - 1) * PAGE_SIZE;
 
-  const where: Record<string, unknown> = {};
+  const where: Prisma.StockEntryWhereInput = {};
 
   if (filters?.startDate && filters?.endDate) {
     where.date = {
@@ -43,7 +41,7 @@ export async function getStockEntries(filters?: {
   }
 
   if (filters?.status) {
-    where.status = filters.status;
+    where.status = filters.status as Prisma.EnumStockEntryStatusFilter['equals'];
   }
 
   if (filters?.search) {
@@ -249,9 +247,9 @@ export async function cancelStockEntry(id: string, reason: string) {
 
     // Check if stock can be reversed
     for (const item of entry.items) {
-      const variant = serializeData(await prisma.productVariant.findUnique({
+      const variant = await prisma.productVariant.findUnique({
         where: { id: item.variantId },
-      }));
+      });
 
       if (!variant || variant.currentStock < item.quantity) {
         return { error: `Cannot cancel: insufficient stock to reverse for some items` };

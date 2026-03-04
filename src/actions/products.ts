@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { z } from 'zod';
 import { serializeData, checkAuth } from '@/lib/utils';
+import { PAGE_SIZE } from '@/lib/constants';
 
 // Schemas
 const productSchema = z.object({
@@ -29,8 +30,6 @@ const categorySchema = z.object({
 });
 
 // Pagination config
-const PAGE_SIZE = 10;
-
 // Get all products with pagination
 export async function getProducts(filters?: { search?: string; page?: number }) {
   const page = filters?.page || 1;
@@ -124,7 +123,6 @@ export async function createProduct(formData: FormData) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   const data = {
     name: formData.get('name') as string,
@@ -156,7 +154,6 @@ export async function updateProduct(id: string, formData: FormData) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   const data = {
     name: formData.get('name') as string,
@@ -189,10 +186,9 @@ export async function toggleProductStatus(id: string) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
-    const product = serializeData(await prisma.product.findUnique({ where: { id } }));
+    const product = await prisma.product.findUnique({ where: { id } });
     if (!product) {
       return { error: 'Product not found' };
     }
@@ -215,7 +211,6 @@ export async function createVariant(data: z.infer<typeof variantSchema>) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   const validated = variantSchema.safeParse(data);
   if (!validated.success) {
@@ -302,7 +297,6 @@ export async function createCategory(formData: FormData) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   const data = {
     name: formData.get('name') as string,
@@ -335,7 +329,6 @@ export async function addVariantType(productId: string, name: string, options: s
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
     const variantType = await prisma.variantType.create({
@@ -367,7 +360,6 @@ export async function deleteCategory(id: string) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
     // Check if category has products
@@ -396,7 +388,6 @@ export async function deleteProduct(id: string) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
     // Check if product has any sales
@@ -443,7 +434,6 @@ export async function deleteVariant(id: string) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
     // Check if variant has any sales
@@ -465,10 +455,10 @@ export async function deleteVariant(id: string) {
     }
 
     // Get variant to know the product ID for revalidation
-    const variant = serializeData(await prisma.productVariant.findUnique({
+    const variant = await prisma.productVariant.findUnique({
       where: { id },
       select: { productId: true },
-    }));
+    });
 
     await prisma.productVariant.delete({
       where: { id },
@@ -490,7 +480,6 @@ export async function deleteVariantType(id: string) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
     // Get variant type to check for associated variants
@@ -535,7 +524,6 @@ export async function updateVariantType(
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
     // Check for duplicate name in same product
@@ -581,7 +569,6 @@ export async function addVariantOption(
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
     // Check for duplicate option value
@@ -619,7 +606,6 @@ export async function updateVariantOption(
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
     const option = await prisma.variantOption.findUnique({
@@ -662,7 +648,6 @@ export async function deleteVariantOption(id: string) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
     // Check if option is used in any variant
@@ -699,7 +684,6 @@ export async function updateVariant(
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
     // Check for duplicate SKU if changing
@@ -739,13 +723,12 @@ export async function toggleVariantStatus(id: string) {
   const session = await auth();
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
 
   try {
-    const variant = serializeData(await prisma.productVariant.findUnique({
+    const variant = await prisma.productVariant.findUnique({
       where: { id },
       select: { isActive: true },
-    }));
+    });
 
     if (!variant) {
       return { error: 'Variant not found' };

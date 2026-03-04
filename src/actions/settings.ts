@@ -39,7 +39,7 @@ export async function updateCompanyProfile(data: {
   
   const authError = checkAuth(session, 'PRIVILEGE', 'ADMIN');
   if (authError) return authError;
-  const currentUser = session!.user!;
+  const currentUser = session!.user!; 
   
   try {
     let profile = await prisma.companyProfile.findFirst();
